@@ -20,7 +20,8 @@ public class ApmAgent {
 	public static void premain(String agentArgs,Instrumentation inst) {
 		
 		// 添加trace转换器
-		inst.addTransformer(new AopAgentTransformer());
+//		inst.addTransformer(new AopAgentTransformer());
+//		if(true) return ;
 		
 		// bytebuddy 拦截方法
 		AgentBuilder.Transformer transformer = new AgentBuilder.Transformer() {
@@ -88,7 +89,7 @@ public class ApmAgent {
 
 		new AgentBuilder.Default()
 //				.type(ElementMatchers.nameStartsWith("com.boco.mis")) // 指定需要拦截的类
-				.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
+				.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mss|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
 //				.type(ElementMatchers.any()) // 指定需要拦截的类
 				.transform(transformer).with(listener).installOn(inst);
 	}

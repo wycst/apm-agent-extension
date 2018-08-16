@@ -1,6 +1,5 @@
 package com.boco.mis.opentrace.utils;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -11,7 +10,7 @@ public class ObjectMapperUtils {
 	static ObjectMapper objectMapper = new ObjectMapper();
 	
 	static {
-		objectMapper.setDefaultPropertyInclusion(Include.NON_NULL);
+//		objectMapper.setDefaultPropertyInclusion(Include.NON_NULL);
 	}
 	
 	public static  <T> T  toBean(Object source,Class<T> targetClass) {

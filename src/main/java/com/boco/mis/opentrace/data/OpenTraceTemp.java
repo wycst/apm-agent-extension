@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
@@ -62,14 +61,20 @@ public class OpenTraceTemp {
 	@SuppressWarnings("unchecked")
 	public static List<Map<String,Object>> getTraces(final Map<String,Object> queryParams) {
 		
-		List<GlobalTrace> cloneTraces = new ArrayList<GlobalTrace>(traces);
-		cloneTraces.removeIf(new Predicate<GlobalTrace>() {
-			
-			public boolean test(GlobalTrace t) {
-				return filter(t, queryParams);
+		// jdk 8 语法
+//		List<GlobalTrace> cloneTraces = new ArrayList<GlobalTrace>(traces);
+//		cloneTraces.removeIf(new java.util.function.Predicate<GlobalTrace>() {
+//			
+//			public boolean test(GlobalTrace t) {
+//				return filter(t, queryParams);
+//			}
+//		});
+		List<GlobalTrace> cloneTraces = new ArrayList<GlobalTrace>(); 
+		for(GlobalTrace trace : traces) {
+			if(!filter(trace, queryParams)) {
+				cloneTraces.add(trace);
 			}
-		});
-		
+		}
 		
 		return ObjectMapperUtils.toBean(cloneTraces, List.class);
 	}
