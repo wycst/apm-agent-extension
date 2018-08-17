@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.boco.mis</groupId>
-  <artifactId>apm-trace-collect</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <artifactId>apm-agent-extension</artifactId>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>apm-trace-collect</name>
+  <name>apm-agent-extension</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -62,6 +62,12 @@
 		<version>2.4.1</version>
 	</dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+	<dependency>
+	    <groupId>com.alibaba</groupId>
+	    <artifactId>fastjson</artifactId>
+	    <version>1.2.49</version>
+	</dependency>
 <!-- 
     <dependency>
 	    <groupId>org.apache.httpcomponents</groupId>
