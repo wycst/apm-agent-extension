@@ -4,7 +4,7 @@
 
   <groupId>com.boco.mis</groupId>
   <artifactId>apm-agent-extension</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>apm-agent-extension</name>
@@ -44,6 +44,7 @@
 	    <type>jar</type>
 	 </dependency>
 
+<!-- 
     <dependency>
 		<groupId>com.fasterxml.jackson.core</groupId>
 		<artifactId>jackson-core</artifactId>
@@ -61,8 +62,11 @@
 		<artifactId>jackson-annotations</artifactId>
 		<version>2.4.1</version>
 	</dependency>
+ -->
 
-    <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+    <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson 
+    
+    -->
 	<dependency>
 	    <groupId>com.alibaba</groupId>
 	    <artifactId>fastjson</artifactId>
@@ -133,11 +137,10 @@
 				        <include>net.bytebuddy:byte-buddy:jar:</include>  
 				        <include>net.bytebuddy:byte-buddy-agent:jar:</include> 
 				       
+				        <!-- 
 				        <include>com.fasterxml.jackson.core:jackson-core:jar:</include> 
 				        <include>com.fasterxml.jackson.core:jackson-databind:jar:</include> 
 				        <include>com.fasterxml.jackson.core:jackson-annotations:jar:</include> 
-				        
-				        <!-- 
 				        <include>com.esotericsoftware:reflectasm:jar:</include> 
 				        <include>org.ow2.asm:asm:jar:</include> 
 				        <include>org.mvel:mvel2:jar:</include> 

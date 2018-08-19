@@ -1,4 +1,4 @@
-package com.boco.mis.opentrace.json;
+package com.boco.mis.opentrace.json.exceptions;
 
 public class JsonException extends RuntimeException {
 

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.boco.mis.opentrace.data.trace.TraceNode;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TraceTreeNode {
 
@@ -18,11 +17,11 @@ public class TraceTreeNode {
 	
 	private String traceType;
 	
-	@JsonProperty("children")
-	private List<TraceTreeNode> items;
+//	@JsonProperty("children")
+	private List<TraceTreeNode> children;
 	
 	public boolean isOpen() {
-		return items != null && items.size() > 0;
+		return children != null && children.size() > 0;
 	}
 	
     public TraceTreeNode(TraceNode traceNode) {
@@ -34,23 +33,23 @@ public class TraceTreeNode {
     	
     	List<TraceNode> children = traceNode.getChildren();
     	if(children.size() > 0) {
-    		items = new ArrayList<TraceTreeNode>();
+    		this.children = new ArrayList<TraceTreeNode>();
     		for(TraceNode child : children) {
     			TraceTreeNode item = new TraceTreeNode(child);
-    			items.add(item);
+    			this.children.add(item);
     		}
     	}
     	
     }
-
-	public List<TraceTreeNode> getItems() {
-		return items;
-	}
-
-	public void setItems(List<TraceTreeNode> items) {
-		this.items = items;
-	}
 	
+	public List<TraceTreeNode> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<TraceTreeNode> children) {
+		this.children = children;
+	}
+
 	public String getName() {
 		
 		String value = "<span>["+key+"] " + name + "</span>";

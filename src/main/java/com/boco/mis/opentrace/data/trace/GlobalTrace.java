@@ -6,11 +6,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import com.boco.mis.opentrace.data.server.Database;
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.tree.TraceTreeNode;
 import com.boco.mis.opentrace.utils.ArrayUtils;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * 一个全局调用追踪链
