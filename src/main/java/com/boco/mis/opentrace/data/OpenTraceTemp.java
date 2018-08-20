@@ -37,11 +37,11 @@ public class OpenTraceTemp {
 	}
 	
 	public static List<Map<String,Object>> getServers(final Map<String,Object> queryParams) {
-		return ObjectMapperUtils.toBean(servers.values(), List.class);
+		return (List)ObjectMapperUtils.toBean(servers.values(), Map.class);
 	}
 	
 	public static List<Map<String,Object>> getTraces() {
-		return ObjectMapperUtils.toBean(traces, List.class);
+		return (List) ObjectMapperUtils.toBean(traces, Map.class);
 	}
 	
 	public static List<Map<String,Object>> queryApmService() {
@@ -76,9 +76,10 @@ public class OpenTraceTemp {
 			}
 		}
 		
-		return ObjectMapperUtils.toBean(cloneTraces, List.class);
+		return (List)ObjectMapperUtils.toBean(cloneTraces, Map.class);
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static List<Map<String,Object>> queryApmService(Map<String,Object> queryParams) {
 		
 		// 对traces进行分组统计
@@ -105,7 +106,7 @@ public class OpenTraceTemp {
 			apmService.calculate();
 		}
 		
-		return ObjectMapperUtils.toBean(services, List.class);
+		return (List)ObjectMapperUtils.toBean(services, Map.class);
 	}
 	
 	private static boolean filter(GlobalTrace trace,

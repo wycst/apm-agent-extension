@@ -3,7 +3,7 @@ package com.boco.mis.opentrace.data.trace;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.boco.mis.opentrace.json.annotations.JsonIgnore;
 
 /**
  * 单次服务调用记录
