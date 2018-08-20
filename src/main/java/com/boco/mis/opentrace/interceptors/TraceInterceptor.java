@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 
 //import org.mvel2.MVEL;
 
+
 import com.boco.mis.opentrace.data.OpenTraceTemp;
 import com.boco.mis.opentrace.data.server.Database;
 import com.boco.mis.opentrace.data.server.Redis;
@@ -47,8 +48,7 @@ public class TraceInterceptor {
 
 			try {
 				Object request = args[0];
-				Map<String, Object> vars = new HashMap<String, Object>();
-				vars.put("request", request);
+				Object response = args[1];
 				// 获取资源路径
 				// String requestURI = MVEL.eval("request.requestURI()", vars) +
 				// "";
@@ -71,7 +71,6 @@ public class TraceInterceptor {
 							request.getClass(), "queryString") + "");
 					globalTrace.setHttp(true);
 					globalTrace.setTraceName(requestURI);
-
 					globalTrace.setRequestURI(requestURI);
 
 					String scheme = AsmInvoke.invoke(request,
@@ -87,17 +86,24 @@ public class TraceInterceptor {
 							request.getClass(), "getServerPort")
 							+ "";
 
-					// WebServer webServer = new WebServer();
-					// webServer.setHost(serverName);
-					// webServer.setPort(serverPort);
-					// webServer.setCategory("WebServer");
-					// webServer.setType("tomcat");
-					//
-					// globalTrace.addServer(webServer);
-
 					String requestURL = scheme + "://" + serverName + ":"
 							+ serverPort + requestURI;
 					globalTrace.setRequestURL(requestURL);
+					
+					String xRequestedWith = (String) AsmInvoke.invoke(request,request.getClass(), "getHeader","X-Requested-With");
+					String userAgent = (String) AsmInvoke.invoke(request,request.getClass(), "getHeader","User-Agent") ;
+					String referer = (String) AsmInvoke.invoke(request,request.getClass(), "getHeader","Referer") ;
+//					String cookies = AsmInvoke.invoke(request,request.getClass(), "getHeader","Cookie") + "";
+					
+					globalTrace.setxRequestedWith(xRequestedWith);
+					globalTrace.setUserAgent(userAgent);
+					globalTrace.setReferer(referer);
+					
+//					Object mimeHeaders = AsmInvoke.invoke(response,response.getClass(), "getMimeHeaders");
+//					if(mimeHeaders != null) {
+//						String responseServer = AsmInvoke.invoke(mimeHeaders,mimeHeaders.getClass(), "getHeader","Server") + "";
+//					}
+					
 					globalTraceThreadLocal.set(globalTrace);
 				}
 			} catch (Exception e) {
@@ -420,8 +426,6 @@ public class TraceInterceptor {
 			// 获取tomcat请求响应状态码
 			if (isTomcatRequestResource) {
 				Object response = args[1];
-				Map<String, Object> vars = new HashMap<String, Object>();
-				vars.put("response", response);
 				int status = (Integer) AsmInvoke.invoke(response,
 						response.getClass(), "getStatus");
 				globalTrace.setHttpStatus(status);

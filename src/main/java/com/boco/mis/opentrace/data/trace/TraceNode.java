@@ -3,6 +3,7 @@ package com.boco.mis.opentrace.data.trace;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.boco.mis.opentrace.json.annotations.JsonIgnore;
 
 /**
@@ -51,7 +52,8 @@ public class TraceNode {
 	private String traceCommand;
 	
     // 堆栈列表
-    @JsonIgnore
+	@JsonIgnore
+	@JSONField(deserialize=false,serialize=false)
     private StackTraceElement[] stackTraces;
     
     private List<String> childrenKeys;
@@ -59,6 +61,7 @@ public class TraceNode {
     private String parentKey;
     
     @JsonIgnore
+    @JSONField(deserialize=false,serialize=false)
     private List<TraceNode> children;
     
 	public String getId() {
@@ -166,10 +169,12 @@ public class TraceNode {
 		this.module = module;
 	}
 
+	@JsonIgnore
 	public StackTraceElement[] getStackTraces() {
 		return stackTraces;
 	}
 
+	@JsonIgnore
 	public void setStackTraces(StackTraceElement[] stackTraces) {
 		this.stackTraces = stackTraces;
 	}
@@ -201,6 +206,7 @@ public class TraceNode {
 		return parentKey;
 	}
 
+	@JsonIgnore
 	public List<TraceNode> getChildren() {
 		if(children == null) {
 			children = new ArrayList<TraceNode>();
@@ -208,6 +214,7 @@ public class TraceNode {
 		return children;
 	}
 	
+	@JsonIgnore
 	public void setChildren(List<TraceNode> children) {
 		this.children = children;
 	}

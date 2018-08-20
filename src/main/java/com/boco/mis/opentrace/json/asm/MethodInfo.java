@@ -17,7 +17,7 @@ public class MethodInfo {
 	// 是否存在范型
 	private Class paradigm;
 	
-	// 是否忽略序列
+	// 是否忽略序列化
 	private boolean ignore;
 
 	public Class getParamType() {

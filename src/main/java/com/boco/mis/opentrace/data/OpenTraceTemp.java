@@ -10,7 +10,7 @@ import java.util.Set;
 
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
-import com.boco.mis.opentrace.utils.ObjectMapperUtils;
+import com.boco.mis.opentrace.utils.JsonUtils;
 
 public class OpenTraceTemp {
 
@@ -26,6 +26,10 @@ public class OpenTraceTemp {
 		// 生成节点树
 		trace.generateTraceTree();
 		traces.add(trace);
+		
+		if(trace.getAppName() == null) {
+			trace.setAppName("/");
+		}
 		appNameSet.add(trace.getAppName());
 		for(Server server : trace.getServers()) {
 			addServer(server);
@@ -36,15 +40,15 @@ public class OpenTraceTemp {
 		servers.put(server.getHostPortPair(), server);
 	}
 	
-	public static List<Map<String,Object>> getServers(final Map<String,Object> queryParams) {
-		return (List)ObjectMapperUtils.toBean(servers.values(), Map.class);
+	public static String getServers(final Map<String,Object> queryParams) {
+		return JsonUtils.toJsonString(servers.values());
 	}
 	
-	public static List<Map<String,Object>> getTraces() {
-		return (List) ObjectMapperUtils.toBean(traces, Map.class);
+	public static String getTraces() {
+		return JsonUtils.toJsonString(traces);
 	}
 	
-	public static List<Map<String,Object>> queryApmService() {
+	public static String queryApmService() {
 		return queryApmService(null);
 	}
 	
@@ -59,7 +63,7 @@ public class OpenTraceTemp {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<Map<String,Object>> getTraces(final Map<String,Object> queryParams) {
+	public static String getTraces(final Map<String,Object> queryParams) {
 		
 		// jdk 8 语法
 //		List<GlobalTrace> cloneTraces = new ArrayList<GlobalTrace>(traces);
@@ -76,11 +80,11 @@ public class OpenTraceTemp {
 			}
 		}
 		
-		return (List)ObjectMapperUtils.toBean(cloneTraces, Map.class);
+		return JsonUtils.toJsonString(cloneTraces);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static List<Map<String,Object>> queryApmService(Map<String,Object> queryParams) {
+	public static String queryApmService(Map<String,Object> queryParams) {
 		
 		// 对traces进行分组统计
 		// 根据TraceName分组
@@ -106,7 +110,7 @@ public class OpenTraceTemp {
 			apmService.calculate();
 		}
 		
-		return (List)ObjectMapperUtils.toBean(services, Map.class);
+		return JsonUtils.toJsonString(services);
 	}
 	
 	private static boolean filter(GlobalTrace trace,

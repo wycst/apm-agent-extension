@@ -7,6 +7,10 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 
 public class TraceTreeNode {
 
+	private String treeId;
+	
+	private String traceNodeId;
+	
 	private String key;
 	
 	private String name;
@@ -25,6 +29,8 @@ public class TraceTreeNode {
 	}
 	
     public TraceTreeNode(TraceNode traceNode) {
+    	
+    	this.traceNodeId = traceNode.getId();
     	this.name = traceNode.getClassName() + "." + traceNode.getMethodName();
     	this.fullName = traceNode.getFullMethodName();
     	this.key = traceNode.getKey();
@@ -89,4 +95,21 @@ public class TraceTreeNode {
 		this.timeMillis = timeMillis;
 	}
 
+	public String getTreeId() {
+		return treeId;
+	}
+
+	public void setTreeId(String treeId) {
+		this.treeId = treeId;
+	}
+
+	public String getTraceNodeId() {
+		return traceNodeId;
+	}
+
+	public void setTraceNodeId(String traceNodeId) {
+		this.traceNodeId = traceNodeId;
+	}
+
+	
 }

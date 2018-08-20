@@ -32,11 +32,11 @@ public class GlobalTrace {
 	// 名称 if http traceName => requestURI
 	private String traceName;
 
-	// 开始节点
-	private TraceNode startTraceNode;
-
-	// 结束节点
-	private TraceNode endTraceNode;
+//	// 开始节点
+//	private TraceNode startTraceNode;
+//
+//	// 结束节点
+//	private TraceNode endTraceNode;
 
 	// 节点列表
 	private List<TraceNode> traceNodes;
@@ -96,6 +96,17 @@ public class GlobalTrace {
 	// 入口位置
 	private int entryStackTraceIndex;
 	
+	// X-Requested-With
+	private String xRequestedWith;
+	// User-Agent
+	private String userAgent;
+	// 来源
+	private String referer;
+	// Cookie [JSESSIONID]
+	private String jsessionid;
+	// 来源ResponseHeader ： Server:Apache-Coyote/1.1
+	private String responseServer;
+	
 	public String getTraceId() {
 		return traceId;
 	}
@@ -112,21 +123,21 @@ public class GlobalTrace {
 		this.traceName = traceName;
 	}
 
-	public TraceNode getStartTraceNode() {
-		return startTraceNode;
-	}
-
-	public void setStartTraceNode(TraceNode startTraceNode) {
-		this.startTraceNode = startTraceNode;
-	}
-
-	public TraceNode getEndTraceNode() {
-		return endTraceNode;
-	}
-
-	public void setEndTraceNode(TraceNode endTraceNode) {
-		this.endTraceNode = endTraceNode;
-	}
+//	public TraceNode getStartTraceNode() {
+//		return startTraceNode;
+//	}
+//
+//	public void setStartTraceNode(TraceNode startTraceNode) {
+//		this.startTraceNode = startTraceNode;
+//	}
+//
+//	public TraceNode getEndTraceNode() {
+//		return endTraceNode;
+//	}
+//
+//	public void setEndTraceNode(TraceNode endTraceNode) {
+//		this.endTraceNode = endTraceNode;
+//	}
 
 	public List<TraceNode> getTraceNodes() {
 		return traceNodes;
@@ -274,6 +285,46 @@ public class GlobalTrace {
 		this.entryStackTraceIndex = entryStackTraceIndex;
 	}
 
+	public String getxRequestedWith() {
+		return xRequestedWith;
+	}
+
+	public void setxRequestedWith(String xRequestedWith) {
+		this.xRequestedWith = xRequestedWith;
+	}
+
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
+	public String getReferer() {
+		return referer;
+	}
+
+	public void setReferer(String referer) {
+		this.referer = referer;
+	}
+
+	public String getJsessionid() {
+		return jsessionid;
+	}
+
+	public void setJsessionid(String jsessionid) {
+		this.jsessionid = jsessionid;
+	}
+
+	public String getResponseServer() {
+		return responseServer;
+	}
+
+	public void setResponseServer(String responseServer) {
+		this.responseServer = responseServer;
+	}
+
 	public static String generateTraceId() {
 		long threadId = Thread.currentThread().getId();
 		long timestamp = System.currentTimeMillis();
@@ -341,9 +392,6 @@ public class GlobalTrace {
 				traceTreeNodes.add(new TraceTreeNode(traceNode));
 			}
 		}
-//		
-		System.out.println(traceTreeNodes);
-//		
 		
 	}
 

@@ -83,13 +83,13 @@ public class Json {
 			content.append(join(items, ","));
 			content.append("}");
 		} else if (clazz.isPrimitive() || Number.class.isAssignableFrom(clazz)
-				|| (clazz == String.class)) {
+				|| (clazz == String.class || clazz == boolean.class || clazz == Boolean.class) ) {
 			// 基本类型，number，字符串都返回字符串
 			return toValueString(obj);
 		} else if (Date.class.isAssignableFrom(clazz)) {
 			// 日期类型的如何转换
 			return ((Date)obj).getTime() + "";
-		} else {
+		}  else {
 			// 其他类型调用 get方法取
 			content.append("{");
 			List<String> methodNames = JsonHelper.getNoneParamMethodNames(clazz);
@@ -258,6 +258,7 @@ public class Json {
 		if(json == null) 
 			return null;
 		try {
+			System.out.println(json);
 			return parseJson(json,clazz);
 		} catch(Exception ex) {
 		     throw new JsonException("parse json error ！",ex);	
