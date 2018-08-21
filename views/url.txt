@@ -1,7 +1,16 @@
 https://www.cnblogs.com/ghj1976/p/5293250.html
 
+https://www.cnblogs.com/EasonJim/p/8323211.html
+https://blog.csdn.net/chengyuqiang/article/details/79048800
+
 39.104.110.53:22
 
+
+// 查看所有的索引
+39.104.110.53:9200/_cat/indices?v
+
+// 查看所有的索引配置信息
+http://39.104.110.53:9200/_mapping?pretty=true
 
 查询某个分类下面的文档
 http://localhost:9200/global_trace/_search
@@ -53,4 +62,12 @@ curl -XDELETE http://localhost:9200/test_demo_index/_query?pretty -d '{
     }
 }
 }';
+
+
+$ curl -X PUT 'http://localhost:9200/accounts/person/1' -d '{ "user": "张三","title": "工程师","desc": "数据库管理"}' 
+
+
+
+$ curl 'http://localhost:9200/accounts/person/_search'  -d '{"query" : { "match" : { "desc" : "数据库管理" }}}'
+
 
