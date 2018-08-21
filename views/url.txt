@@ -1,0 +1,56 @@
+https://www.cnblogs.com/ghj1976/p/5293250.html
+
+39.104.110.53:22
+
+
+查询某个分类下面的文档
+http://localhost:9200/global_trace/_search
+// 根据id查询
+http://localhost:9200/segment/_search?q=_id:5.26.15329992366320000
+http://localhost:9200/segment/type/5.26.15329992366320000
+
+linux：
+   增加一个索引 ：
+      curl -X POST 'http://localhost:9200/{index}/{type}/{id}' -d '{"a":"avalue","b":"bvalue"}'
+      curl -X POST 'http://localhost:9200/test_demo_index/demo1/1' -d '{"aaaaaaa":"avalue1","bbbbbbb":"bvalue1"}'
+
+
+根据条件删除索引
+curl -XDELETE http://localhost:9200/test_demo_index/demo/_query?pretty -d '{
+"query":{
+    "filtered":{
+        "filter":{
+            "bool":{
+                "must":{
+                    "range":{
+                        "logtime":{
+                            "gt":"20171214235459",
+                            "lt":"20171215235959"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+}'
+
+curl -XDELETE http://localhost:9200/test_demo_index/_query?pretty -d '{
+"query":{
+    "filtered":{
+        "filter":{
+            "bool":{
+                "must":{
+                    "range":{
+                        "logtime":{
+                            "gt":"20171214235459",
+                            "lt":"20171215235959"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+}';
+
