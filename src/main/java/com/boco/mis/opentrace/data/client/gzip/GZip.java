@@ -1,4 +1,4 @@
-package com.boco.mis.opentrace.data;
+package com.boco.mis.opentrace.data.client.gzip;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,7 +7,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 // 将一个字符串按照zip方式压缩和解压缩
-public class ZipUtil {
+public class GZip {
 
   // 压缩
   public static String compress(String str) throws IOException {
@@ -46,11 +46,11 @@ public class ZipUtil {
 	  String str="%           5B%7B%22lastUpdateTim           e%22%3A%222011-10-28+9%3A39%3A41%22%2C%22smsList%22%3A%5B%7B%22liveState%22%3A%221";
 	  
 	  System.out.println("原长度："+str.length());  
-	  System.out.println("压缩后："+ZipUtil.compress(str));  
+	  System.out.println("压缩后："+GZip.compress(str));  
 	  
-	  System.out.println("压缩后："+ZipUtil.compress(str).length());  
+	  System.out.println("压缩后："+GZip.compress(str).length());  
 	  
-      System.out.println("解压缩："+ZipUtil.uncompress(ZipUtil.compress(str)));
+      System.out.println("解压缩："+GZip.uncompress(GZip.compress(str)));
   }
 
 }

@@ -1,4 +1,4 @@
-package com.boco.mis.opentrace.data;
+package com.boco.mis.opentrace.data.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;

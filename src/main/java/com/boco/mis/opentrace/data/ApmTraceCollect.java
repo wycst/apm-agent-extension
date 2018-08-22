@@ -4,7 +4,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.boco.mis.opentrace.data.client.ApmTraceHttpClient;
+import com.boco.mis.opentrace.data.client.gzip.GZip;
+import com.boco.mis.opentrace.data.client.model.ApmTraceInfo;
+import com.boco.mis.opentrace.data.client.model.StackTrace;
+import com.boco.mis.opentrace.data.client.model.Trace;
+import com.boco.mis.opentrace.data.server.Database;
+import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
+import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.utils.JsonUtils;
 
 public class ApmTraceCollect {
@@ -25,19 +33,24 @@ public class ApmTraceCollect {
 	public static void collect(GlobalTrace trace) {
 		
 		trace.generateTraceTree();
-		OpenTraceTemp.addTrace(trace);
-		String traceSourceData = JsonUtils.toJsonString(trace);
 		
-		System.out.println("原始数据:" + traceSourceData);
+		// 添加到临时数据
+		OpenTraceTemp.addTrace(trace);
+		
+		ApmTraceInfo traceInfo = toApmTraceInfo(trace);
+		
+		String traceInfoJsonSource = JsonUtils.toJsonString(traceInfo);
+		
+		System.out.println("原始数据:" + traceInfoJsonSource);
 		try {
-			String zipContent = ZipUtil.compress(traceSourceData);
+			String zipContent = GZip.compress(traceInfoJsonSource);
 			System.out.println("=====压缩后： " + zipContent);
 			String encodeContent = java.net.URLEncoder.encode(zipContent, "utf-8");
 			System.out.println("=====加密后压缩： " + encodeContent);
 			String decodeContent = java.net.URLDecoder.decode(encodeContent, "UTF-8");
 			System.out.println("=====解密后压缩： " + decodeContent);
 			
-			String source = ZipUtil.uncompress(decodeContent);
+			String source = GZip.uncompress(decodeContent);
 			System.out.println("还原后：" + source);
 			
 		} catch (IOException e1) {
@@ -48,10 +61,126 @@ public class ApmTraceCollect {
 		// 是否使用gzip压缩
 		// 暂时来一个发一个    
 		try {
-			ApmTraceHttpClient.httpPost("traceSourceData=\"" + ZipUtil.compress(traceSourceData) + "\"");
+			ApmTraceHttpClient.httpPost("traceSourceData=\"" + GZip.compress(traceInfoJsonSource) + "\"");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static ApmTraceInfo toApmTraceInfo(GlobalTrace trace) {
+		
+		ApmTraceInfo traceInfo = new ApmTraceInfo();
+		Trace apmTrace = new Trace();
+		apmTrace.setTraceId(trace.getTraceId());
+		apmTrace.setTraceName(trace.getTraceName());
+		apmTrace.setAppName(trace.getAppName() == null ? "/" : trace.getAppName());
+		apmTrace.setBeginMillis(trace.getBeginTimeMillis());
+		apmTrace.setBeginTime(trace.getBeginTime());
+		apmTrace.setEndMillis(trace.getEndTimeMillis());
+		apmTrace.setEndTime(trace.getEndTime());
+		apmTrace.setErrorFlag(trace.isErrorFlag());
+		apmTrace.setHttp(trace.isHttp());
+		apmTrace.setHttpComponent(trace.getHttpComponent());
+		apmTrace.setHttpMethod(trace.getHttpMethod());
+		apmTrace.setHttpStatus(trace.getHttpStatus());
+		apmTrace.setJsessionid(trace.getJsessionid());
+		apmTrace.setQueryString(trace.getQueryString());
+		apmTrace.setReferer(trace.getReferer());
+		apmTrace.setRequestURI(trace.getRequestURI());
+		apmTrace.setRequestURL(trace.getRequestURL());
+		apmTrace.setResCode(trace.getResCode());
+		apmTrace.setResponseServer(trace.getResponseServer());
+		
+		apmTrace.setStackTraceId(trace.getTraceId());
+		apmTrace.setTimeMillis(trace.getTimeMillis());
+		apmTrace.setUserAgent(trace.getUserAgent());
+		apmTrace.setxRequestedWith(trace.getxRequestedWith());
+		
+		List<Server> servers = trace.getServers(); 
+		List<TraceNode> traceNodes = trace.getTraceNodes() ;
+		apmTrace.setTraceNodeCount(traceNodes == null ? 0 : traceNodes.size());
+		apmTrace.setServerCount(servers == null ? 0 : servers.size());		
+		
+		// 1 trace
+		traceInfo.setTrace(apmTrace);
+		
+		List<StackTrace> stackTraces = new ArrayList<StackTrace>();
+		
+		if(trace.isErrorFlag()) {
+			StackTrace stackTrace = new StackTrace();
+			stackTrace.setId(apmTrace.getStackTraceId());
+			stackTrace.setText(trace.getStackTrace());
+			stackTrace.setRef("traces");
+			stackTraces.add(stackTrace);
+		}
+		
+		if(apmTrace.getTraceNodeCount() > 0) {
+			
+			List<com.boco.mis.opentrace.data.client.model.TraceNode> apmTraceNodes = new ArrayList<com.boco.mis.opentrace.data.client.model.TraceNode>();
+			
+			for(TraceNode traceNode : traceNodes) {
+				com.boco.mis.opentrace.data.client.model.TraceNode apmTraceNode = new 
+						com.boco.mis.opentrace.data.client.model.TraceNode();
+				apmTraceNode.setId(traceNode.getId());
+				apmTraceNode.setBeginTimeMillis(traceNode.getBeginTimeMillis());
+				apmTraceNode.setChildrenKeys(traceNode.getChildrenKeys().toString());
+				apmTraceNode.setClassName(traceNode.getClassName());
+				apmTraceNode.setEndTimeMillis(traceNode.getEndTimeMillis());
+				apmTraceNode.setError(traceNode.isError());
+				apmTraceNode.setFullMethodName(traceNode.getFullMethodName());
+				apmTraceNode.setKey(traceNode.getKey());
+				apmTraceNode.setMethodName(traceNode.getMethodName());
+				apmTraceNode.setModule(traceNode.getModule());
+				apmTraceNode.setParentKey(traceNode.getParentKey());
+				apmTraceNode.setStackTraceId(traceNode.getId());
+				apmTraceNode.setTraceCommand(traceNode.getTraceCommand());
+				apmTraceNode.setTraceId(traceNode.getTraceId());
+				apmTraceNode.setTraceNodeName(traceNode.getTraceNodeName());
+				apmTraceNode.setTraceType(traceNode.getTraceType());
+				apmTraceNodes.add(apmTraceNode);
+				
+				if(traceNode.isError()) {
+					StackTrace stackTrace = new StackTrace();
+					stackTrace.setId(traceNode.getId());
+					stackTrace.setText(traceNode.getStackTrace());
+					stackTrace.setRef("trace_nodes");
+					stackTraces.add(stackTrace);
+				}
+			}
+			// 2 apmTraceNodes
+			traceInfo.setTraceNodes(apmTraceNodes);
+		}
+		// 3 stackTraces
+		traceInfo.setStackTraces(stackTraces);
+		
+		if(apmTrace.getServerCount() > 0) {
+			List<com.boco.mis.opentrace.data.client.model.Server> apmServers = new ArrayList<com.boco.mis.opentrace.data.client.model.Server>();
+			for(Server server : servers) {
+				com.boco.mis.opentrace.data.client.model.Server apmServer = new com.boco.mis.opentrace.data.client.model.Server();
+				
+				apmServer.setBegin(apmTrace.getBeginMillis());
+				apmServer.setEnd(apmTrace.getEndMillis());
+				apmServer.setTraceId(apmTrace.getTraceId());
+				
+				apmServer.setCategory(server.getCategory());
+				apmServer.setHost(server.getHost());
+				apmServer.setHostPortPair(server.getHostPortPair());
+				
+				apmServer.setName(server.getName());
+				apmServer.setPort(server.getPort());
+				apmServer.setType(server.getType());
+				
+				if(server instanceof Database) {
+					apmServer.setUrl(((Database) server).getUrl());
+					apmServer.setUser(((Database) server).getUser());
+				}
+				apmServer.setVersion(server.getVersion());
+				apmServers.add(apmServer);
+			}
+			traceInfo.setServers(apmServers);
+		}
+		
+		return traceInfo;
 	}
 	
 }
