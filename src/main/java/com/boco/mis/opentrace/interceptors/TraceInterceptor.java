@@ -10,6 +10,8 @@ import java.util.concurrent.Callable;
 //import org.mvel2.MVEL;
 
 
+
+import com.boco.mis.opentrace.data.ApmTraceCollect;
 import com.boco.mis.opentrace.data.OpenTraceTemp;
 import com.boco.mis.opentrace.data.server.Database;
 import com.boco.mis.opentrace.data.server.Redis;
@@ -441,8 +443,9 @@ public class TraceInterceptor {
 						+ globalTrace.getTraceNodes().size());
 				// System.out.println(new
 				// ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(globalTrace));
-				// 异步推送数据
-				OpenTraceTemp.addTrace(globalTrace);
+				
+				// 采集数据
+				ApmTraceCollect.collect(globalTrace);
 				globalTraceThreadLocal.set(null);
 			}
 		}

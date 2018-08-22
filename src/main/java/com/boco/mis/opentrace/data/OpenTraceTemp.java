@@ -24,9 +24,7 @@ public class OpenTraceTemp {
 	
 	public static void addTrace(GlobalTrace trace) {
 		// 生成节点树
-		trace.generateTraceTree();
 		traces.add(trace);
-		
 		if(trace.getAppName() == null) {
 			trace.setAppName("/");
 		}

@@ -32,12 +32,6 @@ public class GlobalTrace {
 	// 名称 if http traceName => requestURI
 	private String traceName;
 
-//	// 开始节点
-//	private TraceNode startTraceNode;
-//
-//	// 结束节点
-//	private TraceNode endTraceNode;
-
 	// 节点列表
 	private List<TraceNode> traceNodes;
 	
