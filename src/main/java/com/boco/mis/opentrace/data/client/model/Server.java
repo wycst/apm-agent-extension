@@ -17,27 +17,22 @@ public class Server {
 	
 	private String host;
 	
-	
 	private String port;
 
-	
 	private String type;
-	
 	
 	private String category;
 	
-	
 	private String version;
-	
 	
 	private String url;
 
-	
 	private String user;
-	
 	
 	private String hostPortPair;
 
+	private String database;
+	
 	// 开始毫秒数
 	private long begin;
 
@@ -147,6 +142,13 @@ public class Server {
 	public void setTraceId(String traceId) {
 		this.traceId = traceId;
 	}
-	
+
+	public String getDatabase() {
+		return database;
+	}
+
+	public void setDatabase(String database) {
+		this.database = database;
+	}
 	
 }

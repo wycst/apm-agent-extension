@@ -210,6 +210,10 @@ public class TraceInterceptor {
 					globalTrace.setAppName(appName.matches("\\/.+") ? appName
 							.substring(1) : appName);
 				}
+			} else if(method.getDeclaringClass().getName().equals("org.apache.jasper.servlet.JspServlet") && method.getName().equals("service")) {
+
+				
+				System.out.println("org.apache.jasper.servlet.JspServlet");
 			}
 			
 
@@ -244,8 +248,11 @@ public class TraceInterceptor {
 									.getMethod("getConnection")
 									.invoke(statementImpl);
 
-							Map<String, Object> vars = new HashMap<String, Object>();
-							vars.put("conn", target);
+							Field databaseField = method.getDeclaringClass()
+									.getDeclaredField("database");
+							databaseField.setAccessible(true);
+							String database = databaseField.get(target) + "";
+							
 							Field passwordField = method.getDeclaringClass()
 									.getDeclaredField("password");
 							passwordField.setAccessible(true);
@@ -259,6 +266,7 @@ public class TraceInterceptor {
 							// 创建server
 							Database dbServer = new Database();
 							dbServer.setCategory("database");
+							dbServer.setDatabase(database);
 							dbServer.setType("mysql");
 							dbServer.setHost(AsmInvoke.invoke(target,
 									target.getClass(), "getHost")
@@ -310,21 +318,27 @@ public class TraceInterceptor {
 							Object jedisClient = AsmInvoke.invoke(jedis,
 									jedis.getClass(), "getClient");
 
+							String db = AsmInvoke.invoke(jedisClient,
+									jedisClient.getClass(), "getDB") + "";
+							
 							String host = AsmInvoke.invoke(jedisClient,
 									jedisClient.getClass(), "getHost") + "";
 							String port = AsmInvoke.invoke(jedisClient,
 									jedisClient.getClass(), "getPort") + "";
 
 							traceNode.setTraceType("redis");
-							traceNode.setTraceCommand(methodName + ":"
-									+ Arrays.asList(args));
+							
 
 							Redis redis = new Redis();
+							redis.setDatabase(db);
 							redis.setHost(host);
 							redis.setPort(port);
 							redis.setCategory("database");
 							redis.setType("redis");
 
+							traceNode.setTraceCommand("host:" + redis.getHostPortPair() + "\n  db:" + db + "\n  " +  methodName + ":"
+									+ Arrays.asList(args));
+							
 							globalTrace.addServer(redis);
 
 						} catch (Exception e) {
@@ -455,13 +469,14 @@ public class TraceInterceptor {
 			GlobalTrace globalTrace, Method method) {
 		String traceId = globalTrace.getTraceId();
 		long beginTimeMillis = System.currentTimeMillis();
-		traceNode.setId(traceId + "." + beginTimeMillis);
+		String key = globalTrace.generateTraceNodeKey();
+		traceNode.setKey(key);
 		traceNode.setTraceId(traceId);
 		traceNode.setClassName(method.getDeclaringClass().getName());
 		traceNode.setBeginTimeMillis(beginTimeMillis);
 		traceNode.setMethodName(method.getName());
 		traceNode.setFullMethodName(method.toGenericString());
-		traceNode.setKey(globalTrace.generateTraceNodeKey());
+		traceNode.setId(traceId + "." + beginTimeMillis + "." + key);
 
 		globalTrace.getTraceNodes().add(traceNode);
 

@@ -2,7 +2,9 @@ package com.boco.mis.opentrace.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.boco.mis.opentrace.data.client.ApmTraceHttpClient;
 import com.boco.mis.opentrace.data.client.gzip.GZip;
@@ -38,30 +40,30 @@ public class ApmTraceCollect {
 		OpenTraceTemp.addTrace(trace);
 		
 		ApmTraceInfo traceInfo = toApmTraceInfo(trace);
-		
 		String traceInfoJsonSource = JsonUtils.toJsonString(traceInfo);
-		
-		System.out.println("原始数据:" + traceInfoJsonSource);
 		try {
-			String zipContent = GZip.compress(traceInfoJsonSource);
-			System.out.println("=====压缩后： " + zipContent);
-			String encodeContent = java.net.URLEncoder.encode(zipContent, "utf-8");
-			System.out.println("=====加密后压缩： " + encodeContent);
-			String decodeContent = java.net.URLDecoder.decode(encodeContent, "UTF-8");
-			System.out.println("=====解密后压缩： " + decodeContent);
-			
-			String source = GZip.uncompress(decodeContent);
-			System.out.println("还原后：" + source);
-			
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		// 是否使用gzip压缩
-		// 暂时来一个发一个    
-		try {
-			ApmTraceHttpClient.httpPost("traceSourceData=\"" + GZip.compress(traceInfoJsonSource) + "\"");
+//			System.out.println("=====原始长度 len ： " + traceInfoJsonSource.length());
+//			String gzipJsonSource = GZip.compress(traceInfoJsonSource);
+//			System.out.println("=====压缩后： " + gzipJsonSource);
+//			System.out.println("=====压缩后 len： " + gzipJsonSource.length());
+//			String encodeJsonSource = java.net.URLEncoder.encode(gzipJsonSource, "utf-8");
+//			System.out.println("=====编码后压缩1： " + encodeJsonSource);
+//			
+//			encodeJsonSource = java.net.URLEncoder.encode(encodeJsonSource, "utf-8");
+//			System.out.println("=====编码后压缩2： " + encodeJsonSource);
+//			System.out.println("=====编码后压缩2 len ： " + encodeJsonSource.length());
+//			
+//			String decodeContent = java.net.URLDecoder.decode(encodeJsonSource, "UTF-8");
+//			System.out.println("=====解码后压缩： " + decodeContent);
+//			
+//			String source = GZip.uncompress(decodeContent);
+//			System.out.println("还原后：" + source);
+//			
+			// 是否使用gzip压缩
+			// 暂时来一个发一个    
+			Map<String,String> headers = new HashMap<String,String>();
+			headers.put("Content-type", "application/json");
+			ApmTraceHttpClient.httpPost(traceInfoJsonSource,headers);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -170,9 +172,11 @@ public class ApmTraceCollect {
 				apmServer.setPort(server.getPort());
 				apmServer.setType(server.getType());
 				
+				apmServer.setUser(server.getUser());
+				apmServer.setDatabase(server.getDatabase());
+				
 				if(server instanceof Database) {
 					apmServer.setUrl(((Database) server).getUrl());
-					apmServer.setUser(((Database) server).getUser());
 				}
 				apmServer.setVersion(server.getVersion());
 				apmServers.add(apmServer);

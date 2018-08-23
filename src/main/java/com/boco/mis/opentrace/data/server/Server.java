@@ -14,6 +14,12 @@ public class Server {
 	
 	private String version;
 	
+	private String database;
+	
+	private String user;
+	
+	private String password;
+	
 	public String getName() {
 		return name;
 	}
@@ -65,5 +71,30 @@ public class Server {
 	public void setVersion(String version) {
 		this.version = version;
 	}
+
+	public String getDatabase() {
+		return database;
+	}
+
+	public void setDatabase(String database) {
+		this.database = database;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
 	
 }

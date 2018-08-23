@@ -9,8 +9,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.boco.mis.opentrace.data.client.gzip.GZip;
+import com.boco.mis.opentrace.data.client.model.ApmTraceInfo;
+import com.boco.mis.opentrace.data.client.model.Trace;
+import com.boco.mis.opentrace.utils.JsonUtils;
 /**
  * 
  * @author wangyunchao
@@ -81,6 +87,7 @@ public class ApmTraceHttpClient {
 					conn.setRequestProperty(entry.getKey(), entry.getValue());
 				}
 			}
+			
 			// 发送POST请求必须设置如下两行
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
@@ -111,7 +118,20 @@ public class ApmTraceHttpClient {
 	}
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, IOException {
-		httpPost("uuuu=2222");
+		
+		String traceInfoJsonSource = "{\"name\" : \"zhangsan\"}";
+		
+		ApmTraceInfo traceInfo = new ApmTraceInfo();
+		
+		Trace trace = new Trace();
+		trace.setAppName("test");
+		traceInfo.setTrace(trace);
+		
+		Map m = new HashMap();
+		//contentType : 'application/json'
+		m.put("Content-type", "application/json");
+		
+		httpPost(JsonUtils.toJsonString(traceInfo),m);
 	}
 	
 }
