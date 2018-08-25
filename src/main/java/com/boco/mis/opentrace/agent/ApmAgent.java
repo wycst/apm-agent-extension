@@ -43,12 +43,7 @@ public class ApmAgent {
 	
 	public static void premain(String agentArgs,Instrumentation inst) {
 		
-		try {
-			initialize();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		initialize();
 		// 添加trace转换器
 //		inst.addTransformer(new AopAgentTransformer());
 //		if(true) return ;
@@ -60,6 +55,8 @@ public class ApmAgent {
 			public Builder<?> transform(Builder<?> builder,
 					TypeDescription typeDescription, ClassLoader classLoader,
 					JavaModule arg3) {
+				
+				System.out.println("package : " +  typeDescription.getName());
 				if(typeDescription.getName().contains("com.boco.mis.opentrace")) {
 					// 过滤掉当前包下面的类
 					return builder;
@@ -108,20 +105,24 @@ public class ApmAgent {
 
 		new AgentBuilder.Default()
 //				.type(ElementMatchers.nameStartsWith("com.boco.mis")) // 指定需要拦截的类
-				.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mss|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
-//				.type(ElementMatchers.any()) // 指定需要拦截的类
+				//.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mss|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
+				.type(ElementMatchers.any()) // 指定需要拦截的类
 				.transform(transformer).with(listener).installOn(inst);
 	}
 
 
 
-	private static void initialize() throws MalformedURLException {
+	private static void initialize() {
 		
-		String confPath = AGENT_HOME + "/conf/apm-conf.properties";
-		
+		String fileSeparator = File.separator;
+		String confPath = AGENT_HOME + fileSeparator + "conf" + fileSeparator + "agent-collect-conf.properties";
 		Properties properties = new Properties();
 		FileReader fr = null;
 		try {
+			File confFile = new File(confPath);
+			if(!confFile.exists()) {
+				return ;
+			}
 			properties.load(fr = new FileReader(new File(confPath)));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
