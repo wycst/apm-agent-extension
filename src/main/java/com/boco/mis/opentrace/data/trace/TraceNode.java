@@ -142,6 +142,9 @@ public class TraceNode {
 	}
 
 	public void setFullMethodName(String fullMethodName) {
+//		
+//		System.out.println(fullMethodName);
+//		
 		this.fullMethodName = fullMethodName;
 	}
 

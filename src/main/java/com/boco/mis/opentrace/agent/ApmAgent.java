@@ -6,14 +6,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.instrument.Instrumentation;
-import java.net.MalformedURLException;
 import java.util.Properties;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.agent.builder.AgentBuilder.Identified.Narrowable;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatcher.Junction;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
@@ -47,7 +49,7 @@ public class ApmAgent {
 		// 添加trace转换器
 //		inst.addTransformer(new AopAgentTransformer());
 //		if(true) return ;
-		
+	
 		// bytebuddy 拦截方法
 		AgentBuilder.Transformer transformer = new AgentBuilder.Transformer() {
 			
@@ -56,7 +58,7 @@ public class ApmAgent {
 					TypeDescription typeDescription, ClassLoader classLoader,
 					JavaModule arg3) {
 				
-				System.out.println("package : " +  typeDescription.getName());
+//				System.out.println("package : " +  typeDescription.getName());
 				if(typeDescription.getName().contains("com.boco.mis.opentrace")) {
 					// 过滤掉当前包下面的类
 					return builder;
@@ -102,12 +104,75 @@ public class ApmAgent {
 			}
 		};
 		
+		
+		AgentBuilder builder = new AgentBuilder.Default();
+		
+		Junction<? super TypeDescription> excludesFunc = baseExcludesElementMatcher();
+		Junction<? super TypeDescription> includesFunc = baseIncludesElementMatcher();
+		ElementMatcher<? super TypeDescription> matchers = ElementMatchers.not(excludesFunc).or(includesFunc);
+		Narrowable narrowable = builder.type(matchers);
+		narrowable.transform(transformer).with(listener).installOn(inst);
+		
+		
+//		new AgentBuilder.Default()
+////				.type(ElementMatchers.nameStartsWith("com.boco.mis")) // 指定需要拦截的类
+//				//.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mss|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
+//				.type(ElementMatchers.any()) // 指定需要拦截的类
+//				.transform(transformer).with(listener).installOn(inst);
+	}
 
-		new AgentBuilder.Default()
-//				.type(ElementMatchers.nameStartsWith("com.boco.mis")) // 指定需要拦截的类
-				//.type(ElementMatchers.nameMatches(".*(org.apache.struts2|redis.clients|org.apache.catalina.connector.CoyoteAdapter|org.apache.catalina.core.ApplicationFilterChain|org.apache.http.impl.client|com.mysql.jdbc|com.boco.(workflow|mss|mis)|org.springframework.web.servlet.DispatcherServlet).*")) // 指定需要拦截的类
-				.type(ElementMatchers.any()) // 指定需要拦截的类
-				.transform(transformer).with(listener).installOn(inst);
+
+
+	private static Junction<? super TypeDescription> baseIncludesElementMatcher() {
+		return ElementMatchers.named("org.apache.catalina.connector.CoyoteAdapter")
+			   .or(ElementMatchers.named("org.apache.catalina.core.ApplicationFilterChain"))
+			   // j2ee HttpServlet
+			   .or(ElementMatchers.named("javax.servlet.http.HttpServlet"))
+			   // jsp servlet
+			   .or(ElementMatchers.named("org.apache.jasper.servlet.JspServlet"))
+			   // spring mvc
+			   .or(ElementMatchers.named("org.springframework.web.servlet.DispatcherServlet"))
+			   // struts2 
+			   .or(ElementMatchers.named("org.apache.struts2.dispatcher.Dispatcher"))
+			   // mysql 连接
+			   .or(ElementMatchers.named("com.mysql.jdbc.ConnectionImpl"))
+			   // redis
+			   .or(ElementMatchers.named("redis.clients.jedis.Jedis"))
+				;
+	}
+
+	private static Junction<? super TypeDescription> baseExcludesElementMatcher() {
+		
+		return ElementMatchers.nameStartsWith("org.apache.")
+			   // 当前工具包	
+			   .or(ElementMatchers.nameStartsWith("com.boco.mis.opentrace"))
+			   // jdk packages
+			   .or(ElementMatchers.nameMatches("com.(sun|io|util)..*"))
+			   .or(ElementMatchers.nameStartsWith("java."))
+			   .or(ElementMatchers.nameStartsWith("javax."))
+			   // 工具包
+			   .or(ElementMatchers.nameStartsWith("com.ctc.wstx."))
+			   .or(ElementMatchers.nameStartsWith("com.google.protobuf."))
+			   .or(ElementMatchers.nameStartsWith("com.fasterxml."))
+			   .or(ElementMatchers.nameStartsWith("com.alibaba."))
+			   .or(ElementMatchers.nameStartsWith("com.mchange."))
+			   .or(ElementMatchers.nameStartsWith("com.ibatis."))
+			   .or(ElementMatchers.nameStartsWith("com.opensymphony."))
+			   .or(ElementMatchers.nameStartsWith("com.sshtools."))
+			   .or(ElementMatchers.nameStartsWith("com.atomikos."))
+			   .or(ElementMatchers.nameStartsWith("com.mysql."))
+			   .or(ElementMatchers.nameStartsWith("com.thoughtworks."))
+			   .or(ElementMatchers.nameStartsWith("oracle."))
+			   .or(ElementMatchers.nameMatches("javassist\\..*"))
+			   .or(ElementMatchers.nameMatches("sun\\..*"))
+			   .or(ElementMatchers.nameMatches("org\\..*"))
+			   .or(ElementMatchers.nameMatches("antlr\\..*"))
+			   .or(ElementMatchers.nameMatches("net\\..*"))
+			   .or(ElementMatchers.nameMatches("freemarker\\..*"))
+			   .or(ElementMatchers.nameMatches("ognl\\..*"))
+			   // 代理类
+			   .or(ElementMatchers.nameStartsWith("$"))
+			   ;
 	}
 
 

@@ -3,6 +3,7 @@ package com.boco.mis.opentrace.data.client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -91,16 +92,17 @@ public class ApmTraceHttpClient {
 			// 发送POST请求必须设置如下两行
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
-			
+//			conn.setRequestProperty("Accept-Charset", "utf-8");
+//			conn.setRequestProperty("contentType", "utf-8");
 			// 输出流
-			out = new PrintWriter(conn.getOutputStream());
+			out = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(),"utf-8"));
 			// 数据格式  k1=value1&k2=value2格式
 			out.print(data);
 			// flush输出流的缓冲
 			out.flush();
 			
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream(),
-					"utf8"));
+					"utf-8"));
 			String line = null;
 			while ((line = in.readLine()) != null) {
 			}
@@ -117,21 +119,28 @@ public class ApmTraceHttpClient {
 		
 	}
 	
-	public static void main(String[] args) throws UnsupportedEncodingException, IOException {
-		
-		String traceInfoJsonSource = "{\"name\" : \"zhangsan\"}";
+	public static void test() {
+String traceInfoJsonSource = "{\"name\" : \"zhangsan\"}";
 		
 		ApmTraceInfo traceInfo = new ApmTraceInfo();
 		
 		Trace trace = new Trace();
-		trace.setAppName("test");
+		trace.setAppName("中国人");
 		traceInfo.setTrace(trace);
 		
 		Map m = new HashMap();
 		//contentType : 'application/json'
-		m.put("Content-type", "application/json");
+		m.put("Content-Type", "application/json");
 		
-		httpPost(JsonUtils.toJsonString(traceInfo),m);
+		
+		
+		httpPost("中国人" + JsonUtils.toJsonString(traceInfo),m);
+	}
+	
+	
+	public static void main(String[] args) throws UnsupportedEncodingException, IOException {
+		
+		test();
 	}
 	
 }

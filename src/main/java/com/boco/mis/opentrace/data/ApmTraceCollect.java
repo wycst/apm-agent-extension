@@ -1,5 +1,6 @@
 package com.boco.mis.opentrace.data;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ public class ApmTraceCollect {
 		
 		ApmTraceInfo traceInfo = toApmTraceInfo(trace);
 		String traceInfoJsonSource = JsonUtils.toJsonString(traceInfo);
+	    System.out.println(traceInfoJsonSource.indexOf("一线处理"));
 		try {
 //			System.out.println("=====原始长度 len ： " + traceInfoJsonSource.length());
 //			String gzipJsonSource = GZip.compress(traceInfoJsonSource);
@@ -63,6 +65,8 @@ public class ApmTraceCollect {
 			// 暂时来一个发一个    
 			Map<String,String> headers = new HashMap<String,String>();
 			headers.put("Content-type", "application/json");
+//			headers.put("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
+		
 			ApmTraceHttpClient.httpPost(traceInfoJsonSource,headers);
 		} catch(Exception e) {
 			e.printStackTrace();

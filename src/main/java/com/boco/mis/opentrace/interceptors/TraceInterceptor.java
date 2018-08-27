@@ -7,23 +7,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-//import org.mvel2.MVEL;
+import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.SuperCall;
 
-
-
-import com.boco.mis.opentrace.data.ApmTraceCollect;
-import com.boco.mis.opentrace.data.OpenTraceTemp;
 import com.boco.mis.opentrace.data.server.Database;
 import com.boco.mis.opentrace.data.server.Redis;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 import com.boco.mis.opentrace.utils.StackTraceUtils;
-
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import com.boco.mis.opentrace.data.ApmTraceCollect;
 
 public class TraceInterceptor {
 
