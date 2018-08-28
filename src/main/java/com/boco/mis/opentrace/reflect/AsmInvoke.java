@@ -1,16 +1,9 @@
 package com.boco.mis.opentrace.reflect;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.boco.mis.opentrace.asm.com.esotericsoftware.reflectasm.MethodAccess;
-import com.boco.mis.opentrace.json.asm.MethodInfo;
 
 public class AsmInvoke {
 
@@ -26,7 +19,7 @@ public class AsmInvoke {
 	 * @param args
 	 * @return
 	 */
-	public static Object invoke(Object target, Class<?> clazz, String methodName, Class[] paramTypes, Object... args) {
+	public static Object invoke(Object target, Class<?> clazz, String methodName, Class<?>[] paramTypes, Object... args) {
 		MethodAccess access = getMethodAccess(clazz);
 		if (paramTypes == null) {
 			return access.invoke(target, methodName, args);

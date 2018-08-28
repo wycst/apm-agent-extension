@@ -11,7 +11,7 @@ import com.boco.mis.opentrace.asm.com.esotericsoftware.reflectasm.MethodAccess;
 import com.boco.mis.opentrace.json.annotations.JsonIgnore;
 import com.boco.mis.opentrace.json.asm.MethodInfo;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
-
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class JsonHelper {
 
 	/**
@@ -61,7 +61,6 @@ public class JsonHelper {
 	 * @return
 	 */
 	public static <T> MethodInfo getSetterMethodInfo(Class<T> clazz, String propertyKey) {
-		// TODO Auto-generated method stub
 		MethodAccess access = AsmInvoke.getMethodAccess(clazz);
 		String setterMethodName = "set" + propertyKey.substring(0, 1).toUpperCase() + propertyKey.substring(1);
 
@@ -89,7 +88,7 @@ public class JsonHelper {
 				Method method = clazz.getMethod(setterMethodName,parameterType);
 				info.setIgnore(method.getAnnotation(JsonIgnore.class) != null);
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
+				
 				e1.printStackTrace();
 			}
 			if(Collection.class.isAssignableFrom(parameterType)) {
@@ -97,7 +96,6 @@ public class JsonHelper {
 					// 如果是集合类型获取范型
 					info.setParadigm(getParadigmClass(clazz,setterMethodName,parameterType));
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

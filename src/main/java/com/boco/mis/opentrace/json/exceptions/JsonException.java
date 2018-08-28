@@ -2,6 +2,11 @@ package com.boco.mis.opentrace.json.exceptions;
 
 public class JsonException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public JsonException() {
 		// TODO Auto-generated constructor stub
 	}

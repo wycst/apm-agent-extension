@@ -26,7 +26,7 @@ public class TraceInterceptor {
 
 	private static String ignoreRequestPattern = ".*\\.(txt|js|css|gif|jpg|png|ico)";
 
-	private static String ignoreTraceNodePattern = "(freemarker|(org.apache.struts2|com.opensymphony)|redis.clients|org.apache.catalina|java.(lang|io|util)|org.springframework|javax.servlet|com.mysql.jdbc).*";
+	private static String ignoreTraceNodePattern = "(freemarker|(org.apache.struts2|com.opensymphony)|redis.clients|org.apache.catalina|java.(lang|io|util)|javax.servlet|com.mysql.jdbc).*";
 
 	@RuntimeType
 	public static Object intercept(@Origin Method method,
@@ -211,12 +211,20 @@ public class TraceInterceptor {
 				System.out.println("org.apache.jasper.servlet.JspServlet");
 			}
 			
-
 			if (!method.getDeclaringClass().getName()
 					.matches(ignoreTraceNodePattern)) {
 				recordTraceNode(traceNode, globalTrace, method);
 			}
 
+			if(method.getDeclaringClass().getName()
+					.startsWith("com.mysql.")) {
+				System.out.println("222 mysql : " + method.getDeclaringClass().getName());
+			}
+			if(method.getDeclaringClass().getName()
+					.startsWith("redis.clients.")) {
+				System.out.println("222 redis : " + method.getDeclaringClass().getName());
+			}
+			
 			// 下面分插件开发当前trace都在干什么事情
 			/* mysql sql */
 			if (method.getDeclaringClass().getName()

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.boco.mis.opentrace.config.ApmConfCenter;
 import com.boco.mis.opentrace.data.client.gzip.GZip;
 import com.boco.mis.opentrace.data.client.model.ApmTraceInfo;
 import com.boco.mis.opentrace.data.client.model.Trace;
@@ -26,17 +27,18 @@ import com.boco.mis.opentrace.utils.JsonUtils;
  */
 public class ApmTraceHttpClient {
 
-	static String url = "http://localhost:8085";
+	static String url ;
 	
-	static String testEndPoint = "/connect"; 
+	static String connectEndPoint = "/connect"; 
 	
-	static String endPoint = "/trace"; 
+	static String collectEndPoint = "/trace"; 
 	
 	private static boolean connect = true;
 	
 	// 一系列配置
 	static {
 		// 读取配置文件初始化url
+		url = ApmConfCenter.COLLECT_HOST;
 	}
 	
 	public static void httpPost(String data)
@@ -46,7 +48,7 @@ public class ApmTraceHttpClient {
 	
 	private static boolean connectable() {
 		try {
-			URLConnection conn = new URL(url + testEndPoint).openConnection();
+			URLConnection conn = new URL(url + connectEndPoint).openConnection();
 			if(conn instanceof HttpURLConnection) {
 				HttpURLConnection httpConn = (HttpURLConnection) conn;
 				httpConn.setRequestMethod("HEAD");
@@ -74,7 +76,7 @@ public class ApmTraceHttpClient {
 		BufferedReader in = null;
 		URLConnection conn ;
 		try {
-			URL realUrl = new URL(url + endPoint);
+			URL realUrl = new URL(url + collectEndPoint);
 			// 打开和URL之间的连接
 			conn = realUrl.openConnection();
 			// 设置超时时间
@@ -88,13 +90,10 @@ public class ApmTraceHttpClient {
 					conn.setRequestProperty(entry.getKey(), entry.getValue());
 				}
 			}
-			
 			// 发送POST请求必须设置如下两行
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
-//			conn.setRequestProperty("Accept-Charset", "utf-8");
-//			conn.setRequestProperty("contentType", "utf-8");
-			// 输出流
+			// 输出流 OutputStreamWriter包装设置编码utf-8
 			out = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(),"utf-8"));
 			// 数据格式  k1=value1&k2=value2格式
 			out.print(data);
@@ -103,8 +102,7 @@ public class ApmTraceHttpClient {
 			
 			in = new BufferedReader(new InputStreamReader(conn.getInputStream(),
 					"utf-8"));
-			String line = null;
-			while ((line = in.readLine()) != null) {
+			while (in.readLine() != null) {
 			}
 			if (in != null) {
 				in.close();
