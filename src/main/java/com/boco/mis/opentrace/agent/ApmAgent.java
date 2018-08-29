@@ -33,19 +33,10 @@ public class ApmAgent {
 			public Builder<?> transform(Builder<?> builder,
 					TypeDescription typeDescription, ClassLoader classLoader,
 					JavaModule arg3) {
-
 				// System.out.println("typeDescription : " + typeDescription.getName());
-
 				return builder
-				// .method(ElementMatchers.<MethodDescription> any())
-						.method(ElementMatchers.not(ElementMatchers
-								.isDeclaredBy(Object.class)
-								.or(ElementMatchers.isGetter())
-								.or(ElementMatchers.isSetter()))) // 拦截任意方法
-						// .method(ElementMatchers.<MethodDescription>
-						// any().and(ElementMatchers.not(ElementMatchers.namedIgnoreCase("toString"))))
-						// // 拦截任意方法
-						.intercept(MethodDelegation.to(TraceInterceptor.class)); // 委托
+						.method(ElementMatchers.isDeclaredBy(typeDescription).and(ElementMatchers.not(ElementMatchers.isGetter().or(ElementMatchers.isSetter())))) 
+						.intercept(MethodDelegation.to(TraceInterceptor.class)); 
 
 			}
 		};
@@ -55,7 +46,6 @@ public class ApmAgent {
 			@Override
 			public void onComplete(String typeName, ClassLoader classLoader,
 					JavaModule module, boolean arg3) {
-				
 			}
 
 			@Override
@@ -87,7 +77,7 @@ public class ApmAgent {
 		Junction<? super TypeDescription> excludesFunc = baseExcludesElementMatcher();
 		Junction<? super TypeDescription> includesFunc = baseIncludesElementMatcher();
 		ElementMatcher<? super TypeDescription> matchers = ElementMatchers.not(
-				excludesFunc).or(includesFunc);
+				ElementMatchers.isInterface().or(excludesFunc)).or(includesFunc);
 		
 		builder.type(matchers).transform(transformer).with(listener).installOn(inst);
 		
@@ -110,9 +100,9 @@ public class ApmAgent {
 				// struts2
 				.or(ElementMatchers
 						.named("org.apache.struts2.dispatcher.Dispatcher"))
-				// mysql 连接
+				// mysql io
 				.or(ElementMatchers
-						.named("com.mysql.jdbc.ConnectionImpl"))
+						.named("com.mysql.jdbc.MysqlIO"))
 				// redis
 				.or(ElementMatchers
 						.named("redis.clients.jedis.Jedis"))
@@ -120,8 +110,10 @@ public class ApmAgent {
 	}
 
 	private static Junction<? super TypeDescription> baseExcludesElementMatcher() {
-
-		return ElementMatchers.nameStartsWith("org.apache.")
+		
+		return 
+				// 接口或抽象类
+				ElementMatchers.isInterface()/*.or(ElementMatchers.isAbstract())*/
 				// 当前工具包
 				.or(ElementMatchers.nameStartsWith("com.boco.mis.opentrace"))
 				// jdk packages
@@ -151,7 +143,6 @@ public class ApmAgent {
 				// 数据库
 				.or(ElementMatchers.nameStartsWith("oracle."))
 				.or(ElementMatchers.nameStartsWith("redis.clients."))
-//				.or(ElementMatchers.nameMatches("com.mysql.jdbc.((?!ConnectionImpl).)*"))
 				.or(ElementMatchers.nameStartsWith("com.mysql."))
 				// 代理类
 				.or(ElementMatchers.nameStartsWith("$"))

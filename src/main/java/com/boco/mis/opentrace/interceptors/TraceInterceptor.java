@@ -26,8 +26,8 @@ public class TraceInterceptor {
 
 	private static String ignoreRequestPattern = ".*\\.(txt|js|css|gif|jpg|png|ico)";
 
-	private static String ignoreTraceNodePattern = "(freemarker|(org.apache.struts2|com.opensymphony)|redis.clients|org.apache.catalina|java.(lang|io|util)|javax.servlet|com.mysql.jdbc).*";
-
+	private static String ignoreTraceNodePattern = "(freemarker|(org.apache.struts2|com.opensymphony)|redis.clients|org.springframework|org.apache.catalina|java.(lang|io|util)|javax.servlet|com.mysql.jdbc).*";
+	
 	@RuntimeType
 	public static Object intercept(@Origin Method method,
 			@SuperCall Callable<?> callable, @AllArguments Object[] args)
@@ -45,10 +45,7 @@ public class TraceInterceptor {
 
 			try {
 				Object request = args[0];
-				Object response = args[1];
 				// 获取资源路径
-				// String requestURI = MVEL.eval("request.requestURI()", vars) +
-				// "";
 				String requestURI = AsmInvoke.invoke(request,
 						request.getClass(), "requestURI")
 						+ "";
@@ -113,8 +110,6 @@ public class TraceInterceptor {
 				.equals("javax.servlet.http.HttpServlet")
 				&& method.getName().equals("service")) {
 			Object request = args[0];
-			Map<String, Object> vars = new HashMap<String, Object>();
-			vars.put("request", request);
 			String requestURI = AsmInvoke.invoke(request, request.getClass(),
 					"getRequestURI") + "";
 			if (requestURI.toLowerCase().matches(ignoreRequestPattern)) {
@@ -169,33 +164,12 @@ public class TraceInterceptor {
 				}
 			}
 			// 设置httpComponent： spring mvc / struts /
-			if (method
-					.getDeclaringClass()
-					.getName()
+			if (method.getDeclaringClass().getName()
 					.equals("org.springframework.web.servlet.DispatcherServlet")
 					&& method.getName().equals("doService")) {
 				// spring mvc
 				globalTrace.setHttpComponent("SpringMVC");
-			} /*else if (method.getDeclaringClass().getName()
-					.matches("org.apache.struts2..*.StrutsActionProxy")
-					&& method.getName().equals("execute")) {
-				// StrutsPrepareAndExecuteFilter
-				globalTrace.setHttpComponent("Struts2");
-				// Object appName =
-				// MVEL.eval("org.apache.struts2.ServletActionContext.getServletContext().getServletContextName()")
-				// ;
-				Object servletActionContext = AsmInvoke.invoke(null, Thread.currentThread().getContextClassLoader().loadClass("org.apache.struts2.ServletActionContext"),
-						"getServletContext");
-				
-				System.out.println(" app name === " + servletActionContext.getClass().getMethod("getServletContextName").invoke(servletActionContext));
-				
-				Object appName = AsmInvoke.invoke(servletActionContext,
-						servletActionContext.getClass(),
-						"getServletContextName");
-				globalTrace
-						.setAppName(appName == null || appName.equals("") ? "/"
-								: appName.toString());
-			} */else if(method.getDeclaringClass().getName().equals("org.apache.struts2.dispatcher.Dispatcher") && method.getName().equals("serviceAction")) {
+			} else if(method.getDeclaringClass().getName().equals("org.apache.struts2.dispatcher.Dispatcher") && method.getName().equals("serviceAction")) {
 				globalTrace.setHttpComponent("Struts2");
 				String appName = AsmInvoke.invoke(args[0], args[0].getClass(),
 						"getContextPath") + "";
@@ -205,89 +179,78 @@ public class TraceInterceptor {
 					globalTrace.setAppName(appName.matches("\\/.+") ? appName
 							.substring(1) : appName);
 				}
-			} else if(method.getDeclaringClass().getName().equals("org.apache.jasper.servlet.JspServlet") && method.getName().equals("service")) {
-
-				
+			} else if(method.getDeclaringClass().getName()
+					.equals("org.apache.jasper.servlet.JspServlet") 
+					&& method.getName().equals("service")) {
 				System.out.println("org.apache.jasper.servlet.JspServlet");
 			}
 			
 			if (!method.getDeclaringClass().getName()
 					.matches(ignoreTraceNodePattern)) {
-				recordTraceNode(traceNode, globalTrace, method);
-			}
-
-			if(method.getDeclaringClass().getName()
-					.startsWith("com.mysql.")) {
-				System.out.println("222 mysql : " + method.getDeclaringClass().getName());
-			}
-			if(method.getDeclaringClass().getName()
-					.startsWith("redis.clients.")) {
-				System.out.println("222 redis : " + method.getDeclaringClass().getName());
+				InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
 			}
 			
-			// 下面分插件开发当前trace都在干什么事情
 			/* mysql sql */
 			if (method.getDeclaringClass().getName()
-					.equals("com.mysql.jdbc.ConnectionImpl")
-					&& method.getName().equals("execSQL")) {
+					.equals("com.mysql.jdbc.MysqlIO")
+					&& method.getName().equals("sqlQueryDirect")) {
 				if (args.length == 10) {
-					recordTraceNode(traceNode, globalTrace, method);
-					Object sql = args[1];
-					traceNode.setModule("mysql");
-					traceNode.setTraceType("sql");
-					try {
-						Object target = null;
-						// callstatement
-						Object statementImpl = args[0];
-						if (statementImpl != null) {
-
-							if (sql == null) {
-								sql = statementImpl.getClass()
-										.getMethod("asSql")
-										.invoke(statementImpl);
+					Object statementImpl = args[0];
+					String sql = (String) args[1];
+					if(statementImpl != null) {
+						InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
+						traceNode.setModule("mysql");
+						traceNode.setTraceType("sql");
+						try {
+							Object target = null;
+							// callstatement
+							if (statementImpl != null) {
+								if(args[3] != null) {
+									// queryPacket = args[3] 
+									// statementImpl -> asSql 
+									sql = (String) AsmInvoke.invoke(statementImpl,
+											statementImpl.getClass(), "asSql");
+								}
+								traceNode.setTraceCommand(sql);
+								target = AsmInvoke.invoke(statementImpl,
+										statementImpl.getClass(), "getConnection");
+								
+								String database = (String) args[8];
+								
+								Field passwordField = target.getClass().getSuperclass()
+										.getDeclaredField("password");
+								passwordField.setAccessible(true);
+								String password = passwordField.get(target) + "";
+								
+								Field portField = target.getClass().getSuperclass()
+										.getDeclaredField("port");
+								portField.setAccessible(true);
+								String port = portField.get(target) + "";
+								
+								// 创建server
+								Database dbServer = new Database();
+								dbServer.setCategory("database");
+								dbServer.setDatabase(database);
+								dbServer.setType("mysql");
+								dbServer.setHost(AsmInvoke.invoke(target,
+										target.getClass(), "getHost")
+										+ "");
+								dbServer.setPort(port);
+								dbServer.setUrl(AsmInvoke.invoke(target,
+										target.getClass(), "getURL")
+										+ "");
+								dbServer.setUser(AsmInvoke.invoke(target,
+										target.getClass(), "getUser")
+										+ "");
+								dbServer.setPassword(password);
+								globalTrace.addServer(dbServer);
 							}
-							traceNode.setTraceCommand(sql + "");
-							target = statementImpl.getClass()
-									.getMethod("getConnection")
-									.invoke(statementImpl);
-
-							Field databaseField = method.getDeclaringClass()
-									.getDeclaredField("database");
-							databaseField.setAccessible(true);
-							String database = databaseField.get(target) + "";
 							
-							Field passwordField = method.getDeclaringClass()
-									.getDeclaredField("password");
-							passwordField.setAccessible(true);
-							String password = passwordField.get(target) + "";
-
-							Field portField = method.getDeclaringClass()
-									.getDeclaredField("port");
-							portField.setAccessible(true);
-							String port = portField.get(target) + "";
-
-							// 创建server
-							Database dbServer = new Database();
-							dbServer.setCategory("database");
-							dbServer.setDatabase(database);
-							dbServer.setType("mysql");
-							dbServer.setHost(AsmInvoke.invoke(target,
-									target.getClass(), "getHost")
-									+ "");
-							dbServer.setPort(port);
-							dbServer.setUrl(AsmInvoke.invoke(target,
-									target.getClass(), "getURL")
-									+ "");
-							dbServer.setUser(AsmInvoke.invoke(target,
-									target.getClass(), "getUser")
-									+ "");
-							dbServer.setPassword(password);
-							globalTrace.addServer(dbServer);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
+					
 				}
 			} else if (method.getDeclaringClass().getName()
 					.startsWith("redis.clients")) {
@@ -300,23 +263,15 @@ public class TraceInterceptor {
 					// recordTraceNode(traceNode,globalTrace,method);
 					// traceNode.setModule("redis");
 				} else if (method.getDeclaringClass().getName()
-						.equals("redis.clients.jedis.Jedis") /*
-															 * &&
-															 * method.getName(
-															 * ).equals
-															 * ("sendCommand")
-															 */) {
+						.equals("redis.clients.jedis.Jedis") ) {
 					if (args.length > 0) {
-						recordTraceNode(traceNode, globalTrace, method);
+						InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
 						traceNode.setModule("redis");
 						try {
 							Field argument0 = callable.getClass()
 									.getDeclaredField("argument0");
 							argument0.setAccessible(true);
 							Object jedis = argument0.get(callable);
-
-							Map<String, Object> vars = new HashMap<String, Object>();
-							vars.put("jedis", jedis);
 
 							Object jedisClient = AsmInvoke.invoke(jedis,
 									jedis.getClass(), "getClient");
@@ -331,7 +286,6 @@ public class TraceInterceptor {
 
 							traceNode.setTraceType("redis");
 							
-
 							Redis redis = new Redis();
 							redis.setDatabase(db);
 							redis.setHost(host);
@@ -357,78 +311,19 @@ public class TraceInterceptor {
 		if (method.getDeclaringClass().getName()
 				.equals("org.apache.http.impl.client.CloseableHttpClient")
 				&& method.getName().equals("execute")) {
-			// System.out.println(" sql args :" + new
-			// ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(args));
+			
 			if (args.length == 2) {
 				Map<String, Object> vars = new HashMap<String, Object>();
 				vars.put("request", args[0]);
-				// System.out.println("httpclient url : " +
-				// MVEL.eval("request.getURI()", vars));
 			}
 		}
-
+		
 		if (traceNode.getFullMethodName() != null) {
 			StackTraceElement[] stackTraces = Thread.currentThread()
 					.getStackTrace();
-			// System.out.println("======== current method : " +
-			// method.getDeclaringClass() + "." + method.getName());
-			// for(StackTraceElement stackTrace : stackTraces) {
-			// System.out.println("[" + stackTrace.getClassName() + "].[" +
-			// stackTrace.getMethodName() + "]");
-			// }
-			// int entryStackTraceIndex = globalTrace.getEntryStackTraceIndex();
 			int to = stackTraces.length;
 			traceNode.setStackTraces(Arrays.copyOfRange(stackTraces, 2, to));
 		}
-
-		// get call ref
-		// StackTraceElement[] stackTraces =
-		// Thread.currentThread().getStackTrace();
-		// StackTraceElement currentStackTrace = stackTraces[2];
-		//
-		// if(traceNode.getFullMethodName() != null) {
-		// //
-		// // System.out.println("======== current method : " +
-		// method.getDeclaringClass() + "." + method.getName());
-		// // for(StackTraceElement stackTrace : stackTraces) {
-		// // System.out.println("[" + stackTrace.getClassName() + "].[" +
-		// stackTrace.getMethodName() + "]");
-		// // }
-		//
-		// TraceNode parent = null;
-		//
-		// // 倒序查找，判断每个node是否为当前节点的父节点
-		// // 判断原理： 如果是父节点，必然出现在当前节点的堆栈数组后面
-		// List<TraceNode> traceNodes = globalTrace.getTraceNodes();
-		// int size = traceNodes.size();
-		// if(size > 0) {
-		// for(int index = size - 1 ; index >= 0; index --) {
-		// TraceNode temp = traceNodes.get(index);
-		// boolean find = false;
-		// for(int stackIndex = 3; stackIndex < stackTraces.length ;
-		// stackIndex++) {
-		// StackTraceElement tempStackTrace = stackTraces[stackIndex];
-		// if(tempStackTrace.getClassName().equals(temp.getClassName()) &&
-		// tempStackTrace.getMethodName().equals(temp.getMethodName())) {
-		// // if match break;
-		// find = true;
-		// break;
-		// }
-		// }
-		// if(find) {
-		// parent = temp;
-		// break;
-		// }
-		// }
-		// }
-		// if(parent != null) {
-		// traceNode.setParent(parent);
-		// parent.getChildren().add(traceNode);
-		// }
-		// }
-		//
-		//
-
 		try {
 			// 函数执行
 			return callable.call();
@@ -458,9 +353,6 @@ public class TraceInterceptor {
 						- globalTrace.getBeginTimeMillis());
 				System.out.println(" globalTrace node size : "
 						+ globalTrace.getTraceNodes().size());
-				// System.out.println(new
-				// ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(globalTrace));
-				
 				// 采集数据
 				ApmTraceCollect.collect(globalTrace);
 				globalTraceThreadLocal.set(null);
@@ -468,28 +360,5 @@ public class TraceInterceptor {
 		}
 	}
 
-	private static void recordTraceNode(TraceNode traceNode,
-			GlobalTrace globalTrace, Method method) {
-		String traceId = globalTrace.getTraceId();
-		long beginTimeMillis = System.currentTimeMillis();
-		String key = globalTrace.generateTraceNodeKey();
-		traceNode.setKey(key);
-		traceNode.setTraceId(traceId);
-		traceNode.setClassName(method.getDeclaringClass().getName());
-		traceNode.setBeginTimeMillis(beginTimeMillis);
-		traceNode.setMethodName(method.getName());
-		traceNode.setFullMethodName(method.toGenericString());
-		traceNode.setId(traceId + "." + beginTimeMillis + "." + key);
-
-		globalTrace.getTraceNodes().add(traceNode);
-
-		if (globalTrace.getTraceNodes().size() == 1) {
-			globalTrace.setEntryStackTraceIndex(Thread.currentThread()
-					.getStackTrace().length - 4);
-		}
-
-		globalTrace.setErrorFlag(false);
-		globalTrace.setStackTrace(null);
-	}
 
 }
