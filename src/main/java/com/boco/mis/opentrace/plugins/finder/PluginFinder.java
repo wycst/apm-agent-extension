@@ -1,5 +1,6 @@
 package com.boco.mis.opentrace.plugins.finder;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +25,9 @@ public abstract class PluginFinder {
 		
 		for(Class<?> pluginClass : pluginClasses) {
 			try {
+				if(pluginClass.isInterface() || Modifier.isAbstract(pluginClass.getModifiers())) {
+					continue;
+				}	
 				ApmPlugin apmPlugin = (ApmPlugin) pluginClass.newInstance();
 				plugins.add(apmPlugin);
 			} catch (InstantiationException e) {

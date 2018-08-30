@@ -29,6 +29,8 @@ public abstract class AbstractTraceInterceptor {
 		TraceNode traceNode = result.getTraceNode();
 		GlobalTrace globalTrace = InterceptorHelper.getTrace();
 		
+		ApmPlugin plugin = result.getPlugin();
+		
 		if (traceNode != null && traceNode.getFullMethodName() != null) {
 			StackTraceElement[] stackTraces = Thread.currentThread()
 					.getStackTrace();
@@ -40,31 +42,13 @@ public abstract class AbstractTraceInterceptor {
 			// 函数执行
 			return callable.call();
 		} catch(Exception ex) {
-			if (globalTrace != null) {
-				String errorStackTrace = StackTraceUtils.getStackTrace(ex);
-				if(traceNode != null) {
-					traceNode.setError(true);
-					traceNode.setStackTrace(errorStackTrace);
-				}
-				globalTrace.setErrorFlag(true);
-				globalTrace.setStackTrace(errorStackTrace);
+			if(plugin != null) {
+				plugin.catchError(ex);
 			}
 			throw ex;
 		} finally {
-			long endTimeMillis = System.currentTimeMillis();
-			if(traceNode != null) {
-				traceNode.setEndTimeMillis(endTimeMillis);
-			}
-			// trace 入口
-			if(result.isGlobalEntry()) {
-				globalTrace.setEndTimeMillis(endTimeMillis);
-				globalTrace.setTimeMillis(endTimeMillis
-						- globalTrace.getBeginTimeMillis());
-				System.out.println(" globalTrace node size : "
-						+ globalTrace.getTraceNodes().size());
-				// 采集数据
-				ApmTraceCollect.collect(globalTrace);
-				InterceptorHelper.setTrace(null);
+			if(plugin != null) {
+				plugin.afterCall();
 			}
 		}
 	}

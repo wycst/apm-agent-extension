@@ -44,6 +44,14 @@ public abstract class ApmPlugin {
 		return result;
 	}
 	
+	public void catchError(Exception ex) {
+		
+	}
+	
+	public void afterCall() {
+		
+	} 
+	
 	public class TraceResult {
 		
 		boolean traced;
@@ -108,6 +116,10 @@ public abstract class ApmPlugin {
 			this.plugin = plugin;
 		}
 
-	} 
+	}
+
+	
+
+	
 	
 }
