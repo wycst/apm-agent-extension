@@ -19,6 +19,7 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 import com.boco.mis.opentrace.utils.StackTraceUtils;
 import com.boco.mis.opentrace.data.ApmTraceCollect;
+import com.boco.mis.opentrace.helper.InterceptorHelper;
 
 public class TraceInterceptor {
 
@@ -151,8 +152,6 @@ public class TraceInterceptor {
 					&& method.getName().equals("doFilter")) {
 				if (globalTrace.getAppName() == null) {
 					Object servletRequest = args[0];
-					Map<String, Object> vars = new HashMap<String, Object>();
-					vars.put("request", servletRequest);
 					String contextPath = AsmInvoke.invoke(servletRequest,
 							servletRequest.getClass(), "getContextPath") + "";
 					if (contextPath.length() == 0) {

@@ -12,7 +12,7 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
-import com.boco.mis.opentrace.config.ApmConfCenter;
+import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.interceptors.TraceInterceptor;
 
 public class ApmAgent {
@@ -26,7 +26,7 @@ public class ApmAgent {
 			return ;
 		}
 		
-		// bytebuddy 拦截方法
+		// Interceptor
 		AgentBuilder.Transformer transformer = new AgentBuilder.Transformer() {
 
 			@Override
@@ -74,8 +74,8 @@ public class ApmAgent {
 
 		AgentBuilder builder = new AgentBuilder.Default();
 
-		Junction<? super TypeDescription> excludesFunc = baseExcludesElementMatcher();
-		Junction<? super TypeDescription> includesFunc = baseIncludesElementMatcher();
+		Junction<? super TypeDescription> excludesFunc = ApmConfCenter.baseExcludesElementMatcher();
+		Junction<? super TypeDescription> includesFunc = ApmConfCenter.baseIncludesElementMatcher();
 		ElementMatcher<? super TypeDescription> matchers = ElementMatchers.not(
 				ElementMatchers.isInterface().or(excludesFunc)).or(includesFunc);
 		
@@ -83,70 +83,5 @@ public class ApmAgent {
 		
 	}
 
-	private static Junction<? super TypeDescription> baseIncludesElementMatcher() {
-		return ElementMatchers
-						.named("org.apache.catalina.connector.CoyoteAdapter")
-				.or(ElementMatchers
-						.named("org.apache.catalina.core.ApplicationFilterChain"))
-				// j2ee HttpServlet
-				.or(ElementMatchers
-						.named("javax.servlet.http.HttpServlet"))
-				// jsp servlet 暂时屏蔽防止跳转或重定向servlet二次请求
-//				.or(ElementMatchers
-//						.named("org.apache.jasper.servlet.JspServlet"))
-				// spring mvc
-				.or(ElementMatchers
-						.named("org.springframework.web.servlet.DispatcherServlet"))
-				// struts2
-				.or(ElementMatchers
-						.named("org.apache.struts2.dispatcher.Dispatcher"))
-				// mysql io
-				.or(ElementMatchers
-						.named("com.mysql.jdbc.MysqlIO"))
-				// redis
-				.or(ElementMatchers
-						.named("redis.clients.jedis.Jedis"))
-						;
-	}
 
-	private static Junction<? super TypeDescription> baseExcludesElementMatcher() {
-		
-		return 
-				// 接口或抽象类
-				ElementMatchers.isInterface()/*.or(ElementMatchers.isAbstract())*/
-				// 当前工具包
-				.or(ElementMatchers.nameStartsWith("com.boco.mis.opentrace"))
-				// jdk packages
-				.or(ElementMatchers.nameStartsWith("java."))
-				.or(ElementMatchers.nameStartsWith("javax."))
-				// 工具包
-				.or(ElementMatchers.nameStartsWith("com.sun."))
-				.or(ElementMatchers.nameStartsWith("com.ctc.wstx."))
-				.or(ElementMatchers.nameStartsWith("com.google.common."))
-				.or(ElementMatchers.nameStartsWith("com.google.protobuf."))
-				.or(ElementMatchers.nameStartsWith("com.carrotsearch."))
-				.or(ElementMatchers.nameStartsWith("com.fasterxml."))
-				.or(ElementMatchers.nameStartsWith("com.alibaba."))
-				.or(ElementMatchers.nameStartsWith("com.mchange."))
-				.or(ElementMatchers.nameStartsWith("com.ibatis."))
-				.or(ElementMatchers.nameStartsWith("com.opensymphony."))
-				.or(ElementMatchers.nameStartsWith("com.sshtools."))
-				.or(ElementMatchers.nameStartsWith("com.atomikos."))
-				.or(ElementMatchers.nameStartsWith("com.thoughtworks."))
-				.or(ElementMatchers.nameStartsWith("javassist."))
-				.or(ElementMatchers.nameStartsWith("sun."))
-				.or(ElementMatchers.nameStartsWith("org."))
-				.or(ElementMatchers.nameStartsWith("antlr."))
-				.or(ElementMatchers.nameStartsWith("net."))
-				.or(ElementMatchers.nameStartsWith("freemarker."))
-				.or(ElementMatchers.nameStartsWith("ognl."))
-				// 数据库
-				.or(ElementMatchers.nameStartsWith("oracle."))
-				.or(ElementMatchers.nameStartsWith("redis.clients."))
-				.or(ElementMatchers.nameStartsWith("com.mysql."))
-				// 代理类
-				.or(ElementMatchers.nameStartsWith("$"))
-				;
-	}
-	
 }

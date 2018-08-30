@@ -6,13 +6,13 @@ import java.util.concurrent.Callable;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 
-public class SpringMvcPlugin extends ApmPlugin {
+public class JspServletPlugin extends ApmPlugin {
+	
+	private final String pluginName = "Jsp";
 
-	private final String pluginName = "SpringMVC";
+	private final String entryClass = "org.apache.jasper.servlet.JspServlet";
 
-	private final String entryClass = "org.springframework.web.servlet.DispatcherServlet";
-
-	private final String interceptMethod = "doService";
+	private final String interceptMethod = "service";
 
 	private final String targetType = "trace";
 
@@ -32,9 +32,11 @@ public class SpringMvcPlugin extends ApmPlugin {
 		return targetType;
 	}
 
+	@Override
 	public void doTrace(Method method, Callable<?> callable, Object[] args,
 			GlobalTrace globalTrace, TraceNode traceNode) {
-		globalTrace.setHttpComponent(pluginName);
+		
 	}
-
+	
+	
 }

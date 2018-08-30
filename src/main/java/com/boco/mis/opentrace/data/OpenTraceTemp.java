@@ -11,7 +11,12 @@ import java.util.Set;
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.utils.JsonUtils;
-
+/**
+ * 测试临时数据 正式环境删除
+ * @author wangyunchao
+ *
+ * 2018年8月30日 上午9:48:52
+ */
 public class OpenTraceTemp {
 
 	// 所有的trace列表

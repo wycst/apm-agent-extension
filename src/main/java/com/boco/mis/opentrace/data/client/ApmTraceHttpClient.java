@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.boco.mis.opentrace.config.ApmConfCenter;
+import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.data.client.gzip.GZip;
 import com.boco.mis.opentrace.data.client.model.ApmTraceInfo;
 import com.boco.mis.opentrace.data.client.model.Trace;
