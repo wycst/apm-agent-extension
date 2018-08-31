@@ -8,7 +8,7 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 
-public class TomcatPlugin extends ApmPlugin {
+public class TomcatPlugin extends ApmEntryTracePlugin {
 
 	private final String pluginName = "tomcat";
 
@@ -95,5 +95,6 @@ public class TomcatPlugin extends ApmPlugin {
 			e.printStackTrace();
 		}
 	}
+	
 
 }

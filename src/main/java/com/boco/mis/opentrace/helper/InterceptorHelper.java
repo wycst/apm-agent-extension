@@ -60,7 +60,6 @@ public class InterceptorHelper {
 				pluginEntry = true;
 			}
 			if(result.isTraced()) {
-				
 		    	break;
 		    }
 		}
