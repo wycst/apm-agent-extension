@@ -10,7 +10,7 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 
-public class MsqlPlugin extends ApmPlugin {
+public class MsqlPlugin extends ApmEntryNodePlugin {
 
 	private final String pluginName = "SpringMVC";
 
@@ -45,6 +45,7 @@ public class MsqlPlugin extends ApmPlugin {
 			if (statementImpl != null) {
 				InterceptorHelper.recordTraceNode(traceNode, globalTrace,
 						method);
+				getResult().setTraceNode(traceNode);
 				traceNode.setModule("mysql");
 				traceNode.setTraceType("sql");
 				try {

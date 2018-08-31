@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 
-public class SpringMvcPlugin extends ApmPlugin {
+public class SpringMvcPlugin extends ApmEntryNodePlugin {
 
 	private final String pluginName = "SpringMVC";
 
@@ -14,7 +14,7 @@ public class SpringMvcPlugin extends ApmPlugin {
 
 	private final String interceptMethod = "doService";
 
-	private final String targetType = "trace";
+	private final String targetType = "traceNode";
 
 	public String getPluginName() {
 		return pluginName;

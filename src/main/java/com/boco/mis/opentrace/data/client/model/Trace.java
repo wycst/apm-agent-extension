@@ -53,7 +53,6 @@ public class Trace {
 	private String requestURI;
 	
 	// 资源上下文 如servlet容器根目录为/
-	
 	private String appName;
 	
 	// 请求方式
@@ -281,4 +280,59 @@ public class Trace {
 		this.responseServer = responseServer;
 	}
 
+	// 所属应用服务器 {ip}:{port}
+	private String server;
+		
+	// 应用服务器类型
+	private String serverType;
+	
+	// 应用服务器版本
+	private String serverVersion;
+
+	// 是否进行转发
+	private boolean forward;
+	
+	// 同contextPath下转发  资源名称requestURI集合，可能多次转发
+	private String forwardURIs;
+	
+	public String getServer() {
+		return server;
+	}
+
+	public void setServer(String server) {
+		this.server = server;
+	}
+	
+	public String getServerVersion() {
+		return serverVersion;
+	}
+
+	public void setServerVersion(String serverVersion) {
+		this.serverVersion = serverVersion;
+	}
+
+	public String getServerType() {
+		return serverType;
+	}
+
+	public void setServerType(String serverType) {
+		this.serverType = serverType;
+	}
+
+	public boolean isForward() {
+		return forward;
+	}
+
+	public void setForward(boolean forward) {
+		this.forward = forward;
+	}
+
+	public String getForwardURIs() {
+		return forwardURIs;
+	}
+
+	public void setForwardURIs(String forwardURIs) {
+		this.forwardURIs = forwardURIs;
+	}
+	
 }

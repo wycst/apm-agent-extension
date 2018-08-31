@@ -13,6 +13,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
 import com.boco.mis.opentrace.conf.ApmConfCenter;
+import com.boco.mis.opentrace.interceptors.NewTraceInterceptor;
 import com.boco.mis.opentrace.interceptors.TraceInterceptor;
 
 public class ApmAgent {
@@ -36,7 +37,7 @@ public class ApmAgent {
 				// System.out.println("typeDescription : " + typeDescription.getName());
 				return builder
 						.method(ElementMatchers.isDeclaredBy(typeDescription).and(ElementMatchers.not(ElementMatchers.isGetter().or(ElementMatchers.isSetter())))) 
-						.intercept(MethodDelegation.to(TraceInterceptor.class)); 
+						.intercept(MethodDelegation.to(NewTraceInterceptor.class)); 
 
 			}
 		};

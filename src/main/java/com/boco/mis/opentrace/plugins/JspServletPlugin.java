@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 
-public class JspServletPlugin extends ApmPlugin {
+public class JspServletPlugin extends ApmEntryNodePlugin {
 	
 	private final String pluginName = "Jsp";
 
@@ -14,7 +14,7 @@ public class JspServletPlugin extends ApmPlugin {
 
 	private final String interceptMethod = "service";
 
-	private final String targetType = "trace";
+	private final String targetType = "traceNode";
 
 	public String getPluginName() {
 		return pluginName;
@@ -37,6 +37,5 @@ public class JspServletPlugin extends ApmPlugin {
 			GlobalTrace globalTrace, TraceNode traceNode) {
 		
 	}
-	
-	
+
 }

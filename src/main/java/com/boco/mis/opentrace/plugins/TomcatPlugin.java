@@ -18,6 +18,10 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 
 	private final String targetType = "trace";
 
+	private static String serverInfo;
+	
+	private static String ServerNumber;
+	
 	public String getPluginName() {
 		return pluginName;
 	}
@@ -37,6 +41,7 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 	@Override
 	public void doTrace(Method method, Callable<?> callable, Object[] args,
 			GlobalTrace globalTrace, TraceNode traceNode) {
+		
 		try {
 			Object request = args[0];
 			// 获取资源路径
@@ -48,9 +53,6 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 				// 忽略静态资源请求
 				InterceptorHelper.setTrace(null);
 			} else {
-//				boolean isTomcatRequestResource = true;
-				// 其他请求创建globalTrace入口
-//				boolean isGlobalTrace = true;
 				globalTrace = new GlobalTrace();
 				getResult().setGlobalEntry(true);
 				globalTrace.setHttpMethod(AsmInvoke.invoke(request,
@@ -74,7 +76,7 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 				String serverPort = AsmInvoke.invoke(request,
 						request.getClass(), "getServerPort")
 						+ "";
-
+				
 				String requestURL = scheme + "://" + serverName + ":"
 						+ serverPort + requestURI;
 				globalTrace.setRequestURL(requestURL);
@@ -88,6 +90,23 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 				globalTrace.setUserAgent(userAgent);
 				globalTrace.setReferer(referer);
 				
+				// 获取server信息
+				globalTrace.setServer(serverName + ":"	+ serverPort);
+				try {
+					Class<?> serverInfoClass = Thread.currentThread().getContextClassLoader().loadClass("org.apache.catalina.util.ServerInfo");
+					
+					if(serverInfo == null) {
+						serverInfo = (String)AsmInvoke.invoke(null,serverInfoClass, "getServerInfo");
+					}
+					if(ServerNumber == null) {
+						ServerNumber = (String) AsmInvoke.invoke(null,serverInfoClass, "getServerNumber");
+					}
+					globalTrace.setServerType(serverInfo);
+					globalTrace.setServerVersion(ServerNumber);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				
 				InterceptorHelper.setTrace(globalTrace);
 				
 			}
@@ -95,6 +114,20 @@ public class TomcatPlugin extends ApmEntryTracePlugin {
 			e.printStackTrace();
 		}
 	}
-	
+
+	@Override
+	public void doResponse(Object[] args,GlobalTrace trace) {
+		Object response = args[1];
+		int status = (Integer) AsmInvoke.invoke(response,
+				response.getClass(), "getStatus");
+		trace.setHttpStatus(status);
+		
+		Object mimeHeaders = AsmInvoke.invoke(response,response.getClass(), "getMimeHeaders");
+		if(mimeHeaders != null) {
+			String responseServer = (String) AsmInvoke.invoke(mimeHeaders,mimeHeaders.getClass(), "getHeader","Server");
+			trace.setResponseServer(responseServer);
+		}
+		
+	}
 
 }

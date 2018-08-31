@@ -1,5 +1,6 @@
 package com.boco.mis.opentrace.plugins;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
@@ -26,17 +27,40 @@ public abstract class ApmPlugin {
 
 	abstract void doTrace(Method method, Callable<?> callable,
 			 Object[] args, GlobalTrace globalTrace,
-			TraceNode traceNode);
+			TraceNode traceNode) throws Exception;
+	
+	boolean entry() {
+		return true;
+	}
+	
+	public Object getEntryThis(Callable<?> callable) {
+		try {
+			Field argument0 = callable.getClass().getDeclaredField(
+					"argument0");
+			argument0.setAccessible(true);
+			Object entryThis = argument0.get(callable);
+			if(argument0.getType().getName().equals(getEntryClass())) {
+				return entryThis;
+			}
+		} catch(Exception ex) {
+			
+		}
+		return null;
+	}
 	
 	public TraceResult trace(Method method, Callable<?> callable,
 			 Object[] args, GlobalTrace globalTrace,
 			TraceNode traceNode) {
 		result.resetFields();
-		if(method.getDeclaringClass().getName().equals(getEntryClass())) {
+		if(entry() && method.getDeclaringClass().getName().equals(getEntryClass())) {
 			result.setPlugin(this);
 			result.setTracePlugin(this.getPluginName());
 			if(getInterceptMethod() == null || method.getName().equals(getInterceptMethod())) {
-				doTrace(method, callable, args, globalTrace, traceNode);
+				try {
+					doTrace(method, callable, args, globalTrace, traceNode);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 				result.setTraced(true);
 				return result;
 			}
@@ -44,13 +68,9 @@ public abstract class ApmPlugin {
 		return result;
 	}
 	
-	public void catchError(Exception ex) {
-		
-	}
+	public abstract void catchError(Exception ex, TraceNode traceNode);
 	
-	public void afterCall() {
-		
-	} 
+	public abstract void afterCall(boolean globalEntry,TraceNode traceNode, Object[] args);
 	
 	public class TraceResult {
 		

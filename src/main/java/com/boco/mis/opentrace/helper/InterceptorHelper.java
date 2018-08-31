@@ -53,21 +53,25 @@ public class InterceptorHelper {
 		
 		boolean pluginEntry = false;
 		TraceNode traceNode = new TraceNode();
+		
+		// if apmPlugins is not empty , result is not null
 		for (ApmPlugin apmPlugin : apmPlugins) {
 			GlobalTrace globalTrace = InterceptorHelper.getTrace();
 			result = apmPlugin.trace(method, callable, args, globalTrace, traceNode);
+			// break when intercept
 			if(result.getTracePlugin() != null) {
 				pluginEntry = true;
+				break;
 			}
-			if(result.isTraced()) {
-		    	break;
-		    }
 		}
-		// 当前方法如果插件没有matcher到
+			
+		// buss trace code
 		if(!pluginEntry) {
 			GlobalTrace globalTrace = InterceptorHelper.getTrace();
-			InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
-			result.setTraceNode(traceNode);
+			if(globalTrace != null) {
+				InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
+				result.setTraceNode(traceNode);
+			}
 		}
 		
 		return result;

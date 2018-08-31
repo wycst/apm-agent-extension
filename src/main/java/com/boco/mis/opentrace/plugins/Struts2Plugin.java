@@ -7,7 +7,7 @@ import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 
-public class Struts2Plugin extends ApmPlugin {
+public class Struts2Plugin extends ApmEntryNodePlugin {
 
 	private final String pluginName = "Struts2";
 
@@ -15,7 +15,7 @@ public class Struts2Plugin extends ApmPlugin {
 
 	private final String interceptMethod = "serviceAction";
 
-	private final String targetType = "trace_node";
+	private final String targetType = "traceNode";
 
 	public String getPluginName() {
 		return pluginName;

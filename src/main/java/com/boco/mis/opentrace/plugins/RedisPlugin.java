@@ -11,7 +11,7 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
 import com.boco.mis.opentrace.reflect.AsmInvoke;
 
-public class RedisPlugin extends ApmPlugin {
+public class RedisPlugin extends ApmEntryNodePlugin {
 
 	private final String pluginName = "redis";
 
@@ -42,6 +42,7 @@ public class RedisPlugin extends ApmPlugin {
 
 		if (args.length > 0) {
 			InterceptorHelper.recordTraceNode(traceNode, globalTrace, method);
+			getResult().setTraceNode(traceNode);
 			traceNode.setModule("redis");
 			try {
 				Field argument0 = callable.getClass().getDeclaredField(

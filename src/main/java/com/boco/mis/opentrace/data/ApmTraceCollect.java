@@ -97,6 +97,13 @@ public class ApmTraceCollect {
 		apmTrace.setResCode(trace.getResCode());
 		apmTrace.setResponseServer(trace.getResponseServer());
 		
+		apmTrace.setServer(trace.getServer());
+		apmTrace.setServerType(trace.getServerType());
+		apmTrace.setServerVersion(trace.getServerVersion());
+		
+		apmTrace.setForward(trace.isForward());
+		apmTrace.setForwardURIs(trace.getForwardURIs());
+		
 		apmTrace.setStackTraceId(trace.getTraceId());
 		apmTrace.setTimeMillis(trace.getTimeMillis());
 		apmTrace.setUserAgent(trace.getUserAgent());

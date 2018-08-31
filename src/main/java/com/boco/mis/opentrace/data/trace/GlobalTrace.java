@@ -85,6 +85,15 @@ public class GlobalTrace {
 	// http响应码
 	private int httpStatus;
 	
+	private String server;
+	
+	// 应用服务器类型
+	private String serverType;
+	
+	// 应用服务器版本
+	private String serverVersion;
+	
+	// 第三方服务
 	private List<Server> servers; 
 	
 	// 入口位置
@@ -100,6 +109,13 @@ public class GlobalTrace {
 	private String jsessionid;
 	// 来源ResponseHeader ： Server:Apache-Coyote/1.1
 	private String responseServer;
+	
+	// 是否进行转发
+	private boolean forward;
+	
+	// 同contextPath下转发  资源名称requestURI集合，可能多次转发
+	private String forwardURIs;
+	
 	
 	public String getTraceId() {
 		return traceId;
@@ -329,6 +345,46 @@ public class GlobalTrace {
 		return traceNodes.size() + 1 + "";
 	}
 	
+	public String getServer() {
+		return server;
+	}
+
+	public void setServer(String server) {
+		this.server = server;
+	}
+	
+	public String getServerType() {
+		return serverType;
+	}
+
+	public void setServerType(String serverType) {
+		this.serverType = serverType;
+	}
+
+	public String getServerVersion() {
+		return serverVersion;
+	}
+
+	public void setServerVersion(String serverVersion) {
+		this.serverVersion = serverVersion;
+	}
+	
+	public boolean isForward() {
+		return forward;
+	}
+
+	public void setForward(boolean forward) {
+		this.forward = forward;
+	}
+
+	public String getForwardURIs() {
+		return forwardURIs;
+	}
+
+	public void setForwardURIs(String forwardURIs) {
+		this.forwardURIs = forwardURIs;
+	}
+
 	private HashSet<String> hostPortPairs = new HashSet<String>();
 	
 	public void addServer(Server server) {
