@@ -4,12 +4,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
+import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 
 public abstract class ApmPlugin {
 
-    static String ignoreRequestPattern = ".*\\.(txt|js|css|gif|jpg|png|ico)";
+    static String ignoreRequestPattern = "";
 
 	abstract String getPluginName();
 	
@@ -20,6 +21,10 @@ public abstract class ApmPlugin {
 	abstract String getTargetType();
 	
 	private TraceResult result = new TraceResult();
+	
+	static {
+		ignoreRequestPattern = ".*\\." + ApmConfCenter.APM_RESOURCES_EXCLUDE_SUFFIXS.replace(',', '|');
+	}
 	
 	public TraceResult getResult() {
 		return result;
@@ -48,6 +53,18 @@ public abstract class ApmPlugin {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * 返回false退出trace
+	 * 
+	 * @param method
+	 * @return
+	 */
+	boolean entryMethod(Method method) {
+		return getInterceptMethod() == null || method.getName().equals(getInterceptMethod());
+	}
+	
+	
 	public TraceResult trace(Method method, Callable<?> callable,
 			 Object[] args, GlobalTrace globalTrace,
 			TraceNode traceNode) {
@@ -55,7 +72,7 @@ public abstract class ApmPlugin {
 		if(entry() && method.getDeclaringClass().getName().equals(getEntryClass())) {
 			result.setPlugin(this);
 			result.setTracePlugin(this.getPluginName());
-			if(getInterceptMethod() == null || method.getName().equals(getInterceptMethod())) {
+			if(entryMethod(method)) {
 				try {
 					doTrace(method, callable, args, globalTrace, traceNode);
 				} catch (Exception ex) {

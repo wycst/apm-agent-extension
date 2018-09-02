@@ -116,6 +116,8 @@ public class GlobalTrace {
 	// 同contextPath下转发  资源名称requestURI集合，可能多次转发
 	private String forwardURIs;
 	
+	// 当前trace日志输出
+	private StringBuffer traceLog = new StringBuffer();
 	
 	public String getTraceId() {
 		return traceId;
@@ -385,6 +387,14 @@ public class GlobalTrace {
 		this.forwardURIs = forwardURIs;
 	}
 
+	public void tracelog(Object log) {
+		traceLog.append(log);
+	}
+	
+	public String getTraceLog() {
+		return traceLog.toString();
+	}
+	
 	private HashSet<String> hostPortPairs = new HashSet<String>();
 	
 	public void addServer(Server server) {

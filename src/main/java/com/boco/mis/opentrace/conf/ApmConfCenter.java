@@ -8,7 +8,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import com.boco.mis.opentrace.helper.ClassHelper;
 import com.boco.mis.opentrace.plugins.ApmPlugin;
@@ -18,8 +17,8 @@ import com.boco.mis.opentrace.plugins.finder.PluginFinder;
 
 import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.matcher.ElementMatcher.Junction;
+import net.bytebuddy.matcher.ElementMatchers;
 /**
  * 配置中心
  * @author wangyunchao
@@ -28,13 +27,23 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
  */
 public class ApmConfCenter {
 
-	public static boolean IS_CONFIG ;
+	public static final String APM_TRACELOGGING_KEY = "apm.tracelogging" ;
+	public static final String APM_RESOURCES_EXCLUDE_SUFFIXS_KEY = "apm.resources.exclude.suffixs" ;
+	public static final String APM_INTERCEPT_EXCLUDES_PACKAGES_KEY = "apm.intercept.excludes.packages";
+	public static final String APM_INTERCEPT_INCLUDES_PACKAGES_KEY = "apm.intercept.includes.packages";
+	
+	public static final boolean IS_CONFIG ;
 	public static final String AGENT_HOME ;
 	public static final String COLLECT_HOST ;
+	public static final String APM_RESOURCES_EXCLUDE_SUFFIXS ;
+	public static final String APM_INTERCEPT_EXCLUDES_PACKAGES;
+	public static final String APM_INTERCEPT_INCLUDES_PACKAGES;
 	
-    private static Properties properties;
+	public static final String APM_TRACELOGGING;
+	
+    private static Properties PROPERTIES = new Properties();
 	// 插件
-    private static final List<ApmPlugin> plugins = new ArrayList<ApmPlugin>();
+    private static final List<ApmPlugin> PLUGINS = new ArrayList<ApmPlugin>();
     
 	static {
 		// 加载配置文件
@@ -51,13 +60,17 @@ public class ApmConfCenter {
 		File file = new File(path);
 		String filePath = file.getAbsolutePath();
 		AGENT_HOME = filePath;
-		properties = new Properties();
-		
 		// loading conf
 		// dir : {AGENT_HOME}/conf/
 		IS_CONFIG = initializeProperties();
-		COLLECT_HOST = properties.getProperty("apm.collect.server");
+		COLLECT_HOST = PROPERTIES.getProperty("apm.collect.server");
 	
+		APM_TRACELOGGING = PROPERTIES.getProperty(APM_TRACELOGGING_KEY) == null ? "off" : PROPERTIES.getProperty(APM_TRACELOGGING_KEY);
+		APM_RESOURCES_EXCLUDE_SUFFIXS = PROPERTIES.getProperty(APM_RESOURCES_EXCLUDE_SUFFIXS_KEY) == null ? "txt,js,css,gif,jpg,png,ico" : PROPERTIES.getProperty(APM_RESOURCES_EXCLUDE_SUFFIXS_KEY);
+		
+		APM_INTERCEPT_EXCLUDES_PACKAGES = PROPERTIES.getProperty(APM_INTERCEPT_EXCLUDES_PACKAGES_KEY);
+		APM_INTERCEPT_INCLUDES_PACKAGES = PROPERTIES.getProperty(APM_INTERCEPT_INCLUDES_PACKAGES_KEY);
+		
 		loadDependencyLibrary();
 	    // loading plugins
 		// dir : {AGENT_HOME}/plugins/
@@ -79,7 +92,7 @@ public class ApmConfCenter {
 			if(!confFile.exists()) {
 				return false;
 			}
-			properties.load(fr = new FileReader(new File(confPath)));
+			PROPERTIES.load(fr = new FileReader(new File(confPath)));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -102,11 +115,11 @@ public class ApmConfCenter {
 
 	private static void loadPlugins() {
 		// 内置插件
-		PluginFinder pluginBuiltIn = new PluginBuiltIn(plugins);
+		PluginFinder pluginBuiltIn = new PluginBuiltIn(PLUGINS);
 		pluginBuiltIn.loadPlugins();
 	
 		// 拓展插件
-		PluginFinder pluginExternal = new PluginExternal(AGENT_HOME + File.separator + "plugins",plugins);
+		PluginFinder pluginExternal = new PluginExternal(AGENT_HOME + File.separator + "plugins",PLUGINS);
 		pluginExternal.loadPlugins();
 	}
 
@@ -119,53 +132,73 @@ public class ApmConfCenter {
 	}
 	
 	public static String getConfValue(String confKey) {
-		return properties.getProperty(confKey);
+		return PROPERTIES.getProperty(confKey);
 	}
 	
 	public static Junction<? super TypeDescription> baseIncludesElementMatcher() {
-		
-		Junction<? super NamedElement> func = ElementMatchers.named("org.apache.catalina.connector.CoyoteAdapter");
-	    if(plugins.size() > 0) {
-	    	for (ApmPlugin plugin : plugins) {
+		Junction<? super NamedElement> func = ElementMatchers.none();
+	   
+		// load 内置插件
+		if(PLUGINS.size() > 0) {
+	    	for (ApmPlugin plugin : PLUGINS) {
 	    		String entryClass = plugin.getEntryClass();
 	    		func = func.or(ElementMatchers.named(entryClass));
 			}
 	    }
-	    if(true) return func;
 	    
-		return ElementMatchers
-						.named("org.apache.catalina.connector.CoyoteAdapter")
-				.or(ElementMatchers
-						.named("org.apache.catalina.core.ApplicationFilterChain"))
-				// j2ee HttpServlet
-				.or(ElementMatchers
-						.named("javax.servlet.http.HttpServlet"))
-				// jsp servlet 暂时屏蔽防止跳转或重定向servlet二次请求
+	    // load conf
+	    if(APM_INTERCEPT_INCLUDES_PACKAGES != null && !APM_INTERCEPT_INCLUDES_PACKAGES.equals("-1")) {
+			String[] packages = APM_INTERCEPT_INCLUDES_PACKAGES.split(",");
+			for(String _package : packages) {
+				if(_package.matches("[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*")) {
+					func = func.or(ElementMatchers.nameStartsWith(_package + "."));
+				}
+			}
+		}
+	    
+	    return func;
+	    
+//		return ElementMatchers
+//						.named("org.apache.catalina.connector.CoyoteAdapter")
 //				.or(ElementMatchers
-//						.named("org.apache.jasper.servlet.JspServlet"))
-				// spring mvc
-				.or(ElementMatchers
-						.named("org.springframework.web.servlet.DispatcherServlet"))
-				// struts2
-				.or(ElementMatchers
-						.named("org.apache.struts2.dispatcher.Dispatcher"))
-				// mysql io
-				.or(ElementMatchers
-						.named("com.mysql.jdbc.MysqlIO"))
-				// redis
-				.or(ElementMatchers
-						.named("redis.clients.jedis.Jedis"))
-						;
-		
-		
-		
+//						.named("org.apache.catalina.core.ApplicationFilterChain"))
+//				// j2ee HttpServlet
+//				.or(ElementMatchers
+//						.named("javax.servlet.http.HttpServlet"))
+//				// jsp servlet 暂时屏蔽防止跳转或重定向servlet二次请求
+////				.or(ElementMatchers
+////						.named("org.apache.jasper.servlet.JspServlet"))
+//				// spring mvc
+//				.or(ElementMatchers
+//						.named("org.springframework.web.servlet.DispatcherServlet"))
+//				// struts2
+//				.or(ElementMatchers
+//						.named("org.apache.struts2.dispatcher.Dispatcher"))
+//				// mysql io
+//				.or(ElementMatchers
+//						.named("com.mysql.jdbc.MysqlIO"))
+//				// redis
+//				.or(ElementMatchers
+//						.named("redis.clients.jedis.Jedis"))
+//						;
 	}
 	
 	public static Junction<? super TypeDescription> baseExcludesElementMatcher() {
 		
+		Junction<? super NamedElement> func = ElementMatchers.none();
+		
+		if(APM_INTERCEPT_EXCLUDES_PACKAGES != null && !APM_INTERCEPT_EXCLUDES_PACKAGES.equals("-1")) {
+			String[] packages = APM_INTERCEPT_EXCLUDES_PACKAGES.split(",");
+			for(String _package : packages) {
+				if(_package.matches("[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*")) {
+					func = func.or(ElementMatchers.nameStartsWith(_package + "."));
+				}
+			}
+		}
+		
 		return 
 				// 接口或抽象类
-				ElementMatchers.isInterface()/*.or(ElementMatchers.isAbstract())*/
+				func.or(ElementMatchers.isInterface())/*.or(ElementMatchers.isAbstract())*/
 				// 当前工具包
 				.or(ElementMatchers.nameStartsWith("com.boco.mis.opentrace"))
 				// jdk packages
@@ -202,7 +235,7 @@ public class ApmConfCenter {
 	}
 
 	public static List<ApmPlugin> getPlugins() {
-		return plugins;
+		return PLUGINS;
 	}
 	
 	

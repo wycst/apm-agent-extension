@@ -12,7 +12,7 @@ import com.boco.mis.opentrace.reflect.AsmInvoke;
 
 public class MsqlPlugin extends ApmEntryNodePlugin {
 
-	private final String pluginName = "SpringMVC";
+	private final String pluginName = "mysql";
 
 	private final String entryClass = "com.mysql.jdbc.MysqlIO";
 
