@@ -169,6 +169,8 @@
 							<Premain-Class>
 								com.boco.mis.opentrace.agent.ApmAgent
 							</Premain-Class>
+							<Can-Retransform-Classes>true</Can-Retransform-Classes>
+							<Can-Redefine-Classes>true</Can-Redefine-Classes>
 						</manifestEntries>
 					</archive>
 					</configuration>

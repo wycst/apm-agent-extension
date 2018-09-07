@@ -35,6 +35,11 @@ public class ApmAgent {
 					TypeDescription typeDescription, ClassLoader classLoader,
 					JavaModule arg3) {
 				// System.out.println("typeDescription : " + typeDescription.getName());
+				
+				if(typeDescription.getName().startsWith("com.boco.mis.opentrace")) {
+					System.out.println(typeDescription.getName() + "/" + arg3);
+				}
+				
 				return builder
 						.method(ElementMatchers.isDeclaredBy(typeDescription).and(ElementMatchers.not(ElementMatchers.isGetter().or(ElementMatchers.isSetter())))) 
 						.intercept(MethodDelegation.to(NewTraceInterceptor.class)); 
@@ -47,6 +52,7 @@ public class ApmAgent {
 			@Override
 			public void onComplete(String typeName, ClassLoader classLoader,
 					JavaModule module, boolean arg3) {
+				
 			}
 
 			@Override
@@ -57,6 +63,7 @@ public class ApmAgent {
 			@Override
 			public void onError(String typeName, ClassLoader classLoader,
 					JavaModule module, boolean arg3, Throwable throwable) {
+				
 			}
 
 			@Override

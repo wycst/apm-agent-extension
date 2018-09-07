@@ -7,6 +7,7 @@ import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
+import com.boco.mis.opentrace.printstream.TracePrintStream;
 /**
  * System.out.print/println
  * System.err.print/println
@@ -16,17 +17,24 @@ import com.boco.mis.opentrace.helper.InterceptorHelper;
  * @author wangyunchao
  *
  */
-public class LogPlugin extends ApmPlugin {
+public class PrintStreamPlugin extends ApmPlugin {
 
-	private final String pluginName = "log";
+	private final String pluginName = "sysOut";
 
-	private final String entryClass = "java.io.PrintStream";
+	private final String entryClass = "com.boco.mis.opentrace.printstream.TracePrintStream";
 
-	private final String interceptMethod = "print(ln)?";
+	private final String interceptMethod = "out";
 
 	private final String targetType = "traceNode";
 
-	private final boolean onTracelog = "on".equals(ApmConfCenter.APM_TRACELOGGING); 
+	private final static boolean onTracelog = "on".equals(ApmConfCenter.APM_TRACELOGGING); 
+	
+	static {
+		if(onTracelog) {
+			System.setOut(new TracePrintStream(System.out));
+			System.setErr(new TracePrintStream(System.err));
+		}
+	}
 	
 	public String getPluginName() {
 		return pluginName;
@@ -62,12 +70,12 @@ public class LogPlugin extends ApmPlugin {
 	@Override
 	void doTrace(Method method, Callable<?> callable, Object[] args, GlobalTrace globalTrace, TraceNode traceNode)
 			throws Exception {
-		String methodName = method.getName();
-		Object log = args.length == 0 ? "" : args[0];
-		if(methodName.equals("println")) {
-			globalTrace.tracelog(log + "\n");
-		} else {
-			globalTrace.tracelog(log);
+		// 第一个参数是打印字符串（不为空），第2个参数是否换行
+		String outStr = (String) args[0];
+		boolean newLine = (Boolean) args[1];
+		globalTrace.tracelog("System.out:" + outStr);
+		if(newLine) {
+			globalTrace.tracelog("\n");
 		}
 	}
 

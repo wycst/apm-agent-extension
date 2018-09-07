@@ -1,6 +1,9 @@
 package com.boco.mis.test.main;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 //
@@ -15,6 +18,9 @@ import java.io.InputStreamReader;
 //import org.apache.http.impl.client.CloseableHttpClient;
 //import org.apache.http.impl.client.HttpClients;
 //import org.apache.http.util.EntityUtils;
+import java.io.PrintStream;
+
+import com.boco.mis.opentrace.printstream.TracePrintStream;
 
 public class AgentTest {
 
@@ -114,10 +120,13 @@ public class AgentTest {
 //		}
 //	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
+		TracePrintStream tps = new TracePrintStream(System.out);
+		System.setOut(tps);
+		System.out.println("123");
+		
 		new AgentTest().test("hello world !");
-
 	}
 
 }

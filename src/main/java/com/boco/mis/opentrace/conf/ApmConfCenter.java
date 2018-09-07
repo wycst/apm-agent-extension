@@ -80,6 +80,7 @@ public class ApmConfCenter {
 		// 3 通过PluginFinder获取接口ApmPlugin的所有实现类添加到plugins中
 		// 内置的插件
 		loadPlugins();
+		
 	}
 	
 	private static boolean initializeProperties() {
