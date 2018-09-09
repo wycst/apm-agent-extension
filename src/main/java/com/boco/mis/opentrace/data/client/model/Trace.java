@@ -65,18 +65,13 @@ public class Trace {
 	
 	private int serverCount; 
 	
-	
 	private String xRequestedWith;
-	
 	
 	private String userAgent;
 	
-	
 	private String referer;
 	
-	
 	private String jsessionid;
-	
 	
 	private String responseServer;
 
@@ -295,6 +290,8 @@ public class Trace {
 	// 同contextPath下转发  资源名称requestURI集合，可能多次转发
 	private String forwardURIs;
 	
+	private String traceLogId;
+	
 	public String getServer() {
 		return server;
 	}
@@ -333,6 +330,14 @@ public class Trace {
 
 	public void setForwardURIs(String forwardURIs) {
 		this.forwardURIs = forwardURIs;
+	}
+
+	public String getTraceLogId() {
+		return traceLogId;
+	}
+
+	public void setTraceLogId(String traceLogId) {
+		this.traceLogId = traceLogId;
 	}
 	
 }

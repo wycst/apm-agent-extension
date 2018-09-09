@@ -1,12 +1,16 @@
 package com.boco.mis.opentrace.plugins;
 
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Callable;
 
 import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
+import com.boco.mis.opentrace.reflect.AsmInvoke;
 import com.boco.mis.opentrace.utils.StackTraceUtils;
 
 public class Log4jPlugin extends ApmPlugin {
@@ -53,22 +57,24 @@ public class Log4jPlugin extends ApmPlugin {
 			throws Exception {
 		String methodName = method.getName();
 		
-		System.out.println(method.getDeclaringClass().getName());
-		System.out.println(getEntryThis(callable).getClass());
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date entryDate = new Date();
 		
 		if(args.length == 4) {
 			Object log = args[2] == null ? "" : args[2].toString() ;
-			// args String fqcn, Priority level, Object message, Throwable t
-			globalTrace.tracelog(log + "\n");
+			// args  1 String fqcn, 2 Priority level, 3 Object message, 4 Throwable t
+			Object level = args[1];
+			// INFO : com.boco.mis.HomeController - info test !
+			// {level}  {date} : {class} 
+			Object logger = getEntryThis(callable);
+			String loggedClassName = (String) AsmInvoke.invoke(logger, logger.getClass(), "getName");
+			String logContent = df.format(entryDate) +  " [" + loggedClassName + "]-["+level+"] " + log;
+			globalTrace.tracelog(logContent + "\n");
 			Throwable t = (Throwable) args[3];
-			
-			System.out.println(" args0 fqcn " + args[0]);
-			System.out.println(" args1 level " + args[1]);
-			
 			if(t != null) {
 				globalTrace.tracelog(StackTraceUtils.getStackTrace(t));
 			}
-			System.out.println("======== globalTrace tracelog " + globalTrace.getTraceLog());
+//			System.out.println("======== globalTrace tracelog " + globalTrace.getTraceLog());
 		}	
 	}
 

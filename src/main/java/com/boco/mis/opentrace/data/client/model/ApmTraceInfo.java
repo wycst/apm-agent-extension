@@ -12,6 +12,8 @@ public class ApmTraceInfo {
 	
 	private List<StackTrace> stackTraces;
 
+	private TraceLog traceLog;
+	
 	public Trace getTrace() {
 		return trace;
 	}
@@ -43,5 +45,14 @@ public class ApmTraceInfo {
 	public void setStackTraces(List<StackTrace> stackTraces) {
 		this.stackTraces = stackTraces;
 	}
+
+	public TraceLog getTraceLog() {
+		return traceLog;
+	}
+
+	public void setTraceLog(TraceLog traceLog) {
+		this.traceLog = traceLog;
+	}
+	
 	
 }

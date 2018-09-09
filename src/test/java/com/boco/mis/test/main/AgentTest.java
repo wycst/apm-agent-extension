@@ -20,7 +20,10 @@ import java.io.InputStreamReader;
 //import org.apache.http.util.EntityUtils;
 import java.io.PrintStream;
 
+import com.boco.mis.opentrace.data.trace.GlobalTrace;
+import com.boco.mis.opentrace.helper.InterceptorHelper;
 import com.boco.mis.opentrace.printstream.TracePrintStream;
+
 
 public class AgentTest {
 
@@ -122,10 +125,10 @@ public class AgentTest {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
-		TracePrintStream tps = new TracePrintStream(System.out);
-		System.setOut(tps);
-		System.out.println("123");
+	
+		InterceptorHelper.setTrace(new GlobalTrace());
 		
+		System.out.println("123");
 		new AgentTest().test("hello world !");
 	}
 

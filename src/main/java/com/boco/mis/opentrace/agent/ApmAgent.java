@@ -1,6 +1,8 @@
 package com.boco.mis.opentrace.agent;
 
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
@@ -15,6 +17,8 @@ import net.bytebuddy.utility.JavaModule;
 import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.interceptors.NewTraceInterceptor;
 import com.boco.mis.opentrace.interceptors.TraceInterceptor;
+import com.boco.mis.opentrace.printstream.TracePrintStream;
+import com.boco.mis.opentrace.reflect.AsmInvoke;
 
 public class ApmAgent {
 
@@ -27,6 +31,8 @@ public class ApmAgent {
 			return ;
 		}
 		
+		boolean bl = false;
+		
 		// Interceptor
 		AgentBuilder.Transformer transformer = new AgentBuilder.Transformer() {
 
@@ -34,12 +40,7 @@ public class ApmAgent {
 			public Builder<?> transform(Builder<?> builder,
 					TypeDescription typeDescription, ClassLoader classLoader,
 					JavaModule arg3) {
-				// System.out.println("typeDescription : " + typeDescription.getName());
-				
-				if(typeDescription.getName().startsWith("com.boco.mis.opentrace")) {
-					System.out.println(typeDescription.getName() + "/" + arg3);
-				}
-				
+				System.out.println("typeDescription : " + typeDescription.getName());
 				return builder
 						.method(ElementMatchers.isDeclaredBy(typeDescription).and(ElementMatchers.not(ElementMatchers.isGetter().or(ElementMatchers.isSetter())))) 
 						.intercept(MethodDelegation.to(NewTraceInterceptor.class)); 
@@ -52,7 +53,10 @@ public class ApmAgent {
 			@Override
 			public void onComplete(String typeName, ClassLoader classLoader,
 					JavaModule module, boolean arg3) {
-				
+//				if(typeName.equals("com.boco.mis.opentrace.printstream.TracePrintStream")) {
+//			
+//					System.out.println(" complete ... ");
+//				}
 			}
 
 			@Override
@@ -88,6 +92,25 @@ public class ApmAgent {
 				ElementMatchers.isInterface().or(excludesFunc)).or(includesFunc);
 		
 		builder.type(matchers).transform(transformer).with(listener).installOn(inst);
+	
+		try {
+			inst.retransformClasses(TracePrintStream.class);
+		} catch (UnmodifiableClassException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Class<?>[] classes = inst.getAllLoadedClasses();
+		for(Class<?> clazz : classes) {
+			if(clazz.getName().equals("com.boco.mis.opentrace.printstream.TracePrintStream")) {
+				PrintStream outPrintStream = (PrintStream) AsmInvoke.invoke(null, clazz, "getOut");
+				System.setOut(outPrintStream);
+				
+				PrintStream errPrintStream = (PrintStream) AsmInvoke.invoke(null, clazz, "getErr");
+				System.setErr(errPrintStream);
+			}
+		}
+		
 		
 	}
 

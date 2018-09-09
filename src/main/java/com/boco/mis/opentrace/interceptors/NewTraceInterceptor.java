@@ -13,6 +13,7 @@ import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
 import com.boco.mis.opentrace.plugins.ApmPlugin;
 import com.boco.mis.opentrace.plugins.ApmPlugin.TraceResult;
+import com.boco.mis.opentrace.printstream.TracePrintStream;
 
 public class NewTraceInterceptor {
 
@@ -21,6 +22,7 @@ public class NewTraceInterceptor {
 	public static Object intercept(@Origin Method method,
 			@SuperCall Callable<?> callable, @AllArguments Object[] args)
 			throws Exception {
+		
 		TraceResult result = InterceptorHelper.doIntercept(method, callable, args);
 		TraceNode traceNode = result.getTraceNode();
 		ApmPlugin plugin = result.getPlugin();

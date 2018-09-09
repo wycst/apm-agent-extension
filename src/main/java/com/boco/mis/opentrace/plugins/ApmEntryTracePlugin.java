@@ -4,6 +4,7 @@ import com.boco.mis.opentrace.data.ApmTraceCollect;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
 import com.boco.mis.opentrace.data.trace.TraceNode;
 import com.boco.mis.opentrace.helper.InterceptorHelper;
+import com.boco.mis.opentrace.printstream.TracePrintStream;
 import com.boco.mis.opentrace.utils.StackTraceUtils;
 
 public abstract class ApmEntryTracePlugin extends ApmPlugin {

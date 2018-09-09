@@ -38,7 +38,7 @@ public class ApmTraceHttpClient {
 	// 一系列配置
 	static {
 		// 读取配置文件初始化url
-		url = ApmConfCenter.COLLECT_HOST;
+		url = ApmConfCenter.APM_COLLECT_POST_HOST;
 	}
 	
 	public static void httpPost(String data)

@@ -27,6 +27,7 @@ import net.bytebuddy.matcher.ElementMatchers;
  */
 public class ApmConfCenter {
 
+	public static final String APM_COLLECT_POST_HOST_KEY = "apm.collect.post.server" ;
 	public static final String APM_TRACELOGGING_KEY = "apm.tracelogging" ;
 	public static final String APM_RESOURCES_EXCLUDE_SUFFIXS_KEY = "apm.resources.exclude.suffixs" ;
 	public static final String APM_INTERCEPT_EXCLUDES_PACKAGES_KEY = "apm.intercept.excludes.packages";
@@ -34,14 +35,14 @@ public class ApmConfCenter {
 	
 	public static final boolean IS_CONFIG ;
 	public static final String AGENT_HOME ;
-	public static final String COLLECT_HOST ;
+	public static final String APM_COLLECT_POST_HOST ;
 	public static final String APM_RESOURCES_EXCLUDE_SUFFIXS ;
 	public static final String APM_INTERCEPT_EXCLUDES_PACKAGES;
 	public static final String APM_INTERCEPT_INCLUDES_PACKAGES;
 	
 	public static final String APM_TRACELOGGING;
 	
-    private static Properties PROPERTIES = new Properties();
+    private static final Properties PROPERTIES = new Properties();
 	// 插件
     private static final List<ApmPlugin> PLUGINS = new ArrayList<ApmPlugin>();
     
@@ -56,6 +57,10 @@ public class ApmConfCenter {
 		// /D:/gitws/apm-agent-extension/target/apm-agent-extension-0.0.2-SNAPSHOT.jar
 		if (path.endsWith(".jar")) {
 			path = path.substring(0, path.lastIndexOf("/") + 1);
+		} else {
+			if(path.endsWith("/classes/")) {
+				path = path.substring(0, path.length() - "/classes/".length());
+			}
 		}
 		File file = new File(path);
 		String filePath = file.getAbsolutePath();
@@ -63,7 +68,7 @@ public class ApmConfCenter {
 		// loading conf
 		// dir : {AGENT_HOME}/conf/
 		IS_CONFIG = initializeProperties();
-		COLLECT_HOST = PROPERTIES.getProperty("apm.collect.server");
+		APM_COLLECT_POST_HOST = PROPERTIES.getProperty(APM_COLLECT_POST_HOST_KEY);
 	
 		APM_TRACELOGGING = PROPERTIES.getProperty(APM_TRACELOGGING_KEY) == null ? "off" : PROPERTIES.getProperty(APM_TRACELOGGING_KEY);
 		APM_RESOURCES_EXCLUDE_SUFFIXS = PROPERTIES.getProperty(APM_RESOURCES_EXCLUDE_SUFFIXS_KEY) == null ? "txt,js,css,gif,jpg,png,ico" : PROPERTIES.getProperty(APM_RESOURCES_EXCLUDE_SUFFIXS_KEY);
@@ -81,6 +86,8 @@ public class ApmConfCenter {
 		// 内置的插件
 		loadPlugins();
 		
+		// transformer classes
+		toTransformerClasses();
 	}
 	
 	private static boolean initializeProperties() {
@@ -110,6 +117,9 @@ public class ApmConfCenter {
 		return true;
 	}
 	
+	private static void toTransformerClasses() {
+	}
+
 	private static void loadDependencyLibrary() {
 		ClassHelper.loadJars(AGENT_HOME + File.separator + "lib");
 	}
@@ -125,7 +135,7 @@ public class ApmConfCenter {
 	}
 
 	public static String getCollectHost() {
-		return COLLECT_HOST;
+		return APM_COLLECT_POST_HOST;
 	}
 	
 	public static String getAgentHome() {
