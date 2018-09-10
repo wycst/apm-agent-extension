@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.boco.mis.opentrace.conf.ApmConfCenter;
 import com.boco.mis.opentrace.data.client.ApmTraceHttpClient;
 import com.boco.mis.opentrace.data.client.gzip.GZip;
 import com.boco.mis.opentrace.data.client.model.ApmTraceInfo;
 import com.boco.mis.opentrace.data.client.model.StackTrace;
 import com.boco.mis.opentrace.data.client.model.Trace;
+import com.boco.mis.opentrace.data.client.model.TraceLog;
 import com.boco.mis.opentrace.data.server.Database;
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.GlobalTrace;
@@ -24,10 +26,19 @@ public class ApmTraceCollect {
 	private static List<GlobalTrace> traces = new ArrayList<GlobalTrace>();
 		
 	// 每次发送时间间隔
-	private int timeInterval;
+	private static int apmCollectPostInterval = -1;
 	
 	// 每次发送trace个数
-	private int traceCountPerSend;
+	private static int apmCollectPostPercount = -1;
+	
+	static {
+		try {
+			apmCollectPostInterval = Integer.parseInt(ApmConfCenter.getConfValue("apm.collect.post.interval"));
+			apmCollectPostPercount = Integer.parseInt(ApmConfCenter.getConfValue("apm.collect.post.percount"));
+		} catch(Exception ex) {
+			
+		}
+	}
 	
 	/**
 	 * trace数据
@@ -36,43 +47,23 @@ public class ApmTraceCollect {
 	public static void collect(GlobalTrace trace) {
 		
 		trace.generateTraceTree();
-		
 		// 添加到临时数据
 		OpenTraceTemp.addTrace(trace);
 		
+		// post
 		ApmTraceInfo traceInfo = toApmTraceInfo(trace);
 		String traceInfoJsonSource = JsonUtils.toJsonString(traceInfo);
-	    System.out.println(traceInfoJsonSource.indexOf("一线处理"));
 		try {
-//			System.out.println("=====原始长度 len ： " + traceInfoJsonSource.length());
-//			String gzipJsonSource = GZip.compress(traceInfoJsonSource);
-//			System.out.println("=====压缩后： " + gzipJsonSource);
-//			System.out.println("=====压缩后 len： " + gzipJsonSource.length());
-//			String encodeJsonSource = java.net.URLEncoder.encode(gzipJsonSource, "utf-8");
-//			System.out.println("=====编码后压缩1： " + encodeJsonSource);
-//			
-//			encodeJsonSource = java.net.URLEncoder.encode(encodeJsonSource, "utf-8");
-//			System.out.println("=====编码后压缩2： " + encodeJsonSource);
-//			System.out.println("=====编码后压缩2 len ： " + encodeJsonSource.length());
-//			
-//			String decodeContent = java.net.URLDecoder.decode(encodeJsonSource, "UTF-8");
-//			System.out.println("=====解码后压缩： " + decodeContent);
-//			
-//			String source = GZip.uncompress(decodeContent);
-//			System.out.println("还原后：" + source);
-//			
 			// 是否使用gzip压缩
 			// 暂时来一个发一个    
 			Map<String,String> headers = new HashMap<String,String>();
 			headers.put("Content-type", "application/json");
-//			headers.put("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
-		
 			ApmTraceHttpClient.httpPost(traceInfoJsonSource,headers);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	private static ApmTraceInfo toApmTraceInfo(GlobalTrace trace) {
 		
 		ApmTraceInfo traceInfo = new ApmTraceInfo();
@@ -195,7 +186,34 @@ public class ApmTraceCollect {
 			traceInfo.setServers(apmServers);
 		}
 		
+		// 4 tracelog
+		String traceLogStr = trace.getTraceLog();
+		apmTrace.setTraceLogId(trace.getTraceId());
+		if(traceLogStr != null) {
+			TraceLog traceLog = new TraceLog();
+			traceLog.setId(trace.getTraceId());
+			traceLog.setLog(traceLogStr);
+			traceInfo.setTraceLog(traceLog);
+		}
+		
 		return traceInfo;
 	}
-	
+
+//	System.out.println("=====原始长度 len ： " + traceInfoJsonSource.length());
+//	String gzipJsonSource = GZip.compress(traceInfoJsonSource);
+//	System.out.println("=====压缩后： " + gzipJsonSource);
+//	System.out.println("=====压缩后 len： " + gzipJsonSource.length());
+//	String encodeJsonSource = java.net.URLEncoder.encode(gzipJsonSource, "utf-8");
+//	System.out.println("=====编码后压缩1： " + encodeJsonSource);
+//	
+//	encodeJsonSource = java.net.URLEncoder.encode(encodeJsonSource, "utf-8");
+//	System.out.println("=====编码后压缩2： " + encodeJsonSource);
+//	System.out.println("=====编码后压缩2 len ： " + encodeJsonSource.length());
+//	
+//	String decodeContent = java.net.URLDecoder.decode(encodeJsonSource, "UTF-8");
+//	System.out.println("=====解码后压缩： " + decodeContent);
+//	
+//	String source = GZip.uncompress(decodeContent);
+//	System.out.println("还原后：" + source);
+//	
 }

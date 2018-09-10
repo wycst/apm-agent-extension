@@ -1,10 +1,12 @@
 package com.boco.mis.opentrace.data.trace;
 
+import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import com.boco.mis.opentrace.data.server.Server;
 import com.boco.mis.opentrace.data.trace.tree.TraceTreeNode;
@@ -19,6 +21,16 @@ import com.boco.mis.opentrace.utils.ArrayUtils;
  */
 public class GlobalTrace {
 
+	private static final String LAST_UUID;
+	private static final String PID;
+	static {
+		String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+		LAST_UUID = uuid.substring(uuid.length() - 7);
+		
+		String name = ManagementFactory.getRuntimeMXBean().getName(); 
+		PID = name.split("@")[0]; 
+	}
+	
 	public GlobalTrace() {
 		this.traceId = generateTraceId();
 		this.traceNodes = new ArrayList<TraceNode>();
@@ -340,7 +352,7 @@ public class GlobalTrace {
 	public static String generateTraceId() {
 		long threadId = Thread.currentThread().getId();
 		long timestamp = System.currentTimeMillis();
-		return timestamp + "." + threadId;
+		return timestamp + "." + PID + "." + threadId + "." + LAST_UUID;
 	}
 	
 	public synchronized String generateTraceNodeKey() {

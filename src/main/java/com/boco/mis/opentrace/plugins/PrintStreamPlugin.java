@@ -28,11 +28,12 @@ public class PrintStreamPlugin extends ApmPlugin {
 	private final String targetType = "traceNode";
 
 	private final static boolean onTracelog = "on".equals(ApmConfCenter.APM_TRACELOGGING); 
+
+	static boolean hasTransformerTracePrintStream = false;
 	
 	static {
 		if(onTracelog) {
-			System.setOut(new TracePrintStream(System.out));
-			System.setErr(new TracePrintStream(System.err));
+			
 		}
 	}
 	
@@ -73,7 +74,8 @@ public class PrintStreamPlugin extends ApmPlugin {
 		// 第一个参数是打印字符串（不为空），第2个参数是否换行
 		String outStr = (String) args[0];
 		boolean newLine = (Boolean) args[1];
-		globalTrace.tracelog("System.out:" + outStr);
+		String printType = (String) args[2];
+		globalTrace.tracelog(outStr);
 		if(newLine) {
 			globalTrace.tracelog("\n");
 		}
